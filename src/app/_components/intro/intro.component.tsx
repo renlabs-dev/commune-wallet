@@ -1,7 +1,8 @@
 import Image from "next/image";
+
 export const Intro = () => {
   return (
-    <div className="flex w-full max-w-screen-md flex-col items-center justify-center divide-y border border-white bg-black bg-opacity-50 p-8">
+    <div className="flex w-full max-w-screen-md flex-col items-center justify-center divide-y divide-gray-400/40 border border-white bg-black bg-opacity-50 p-8">
       <div className="col-span-1 flex items-center pb-6">
         <Image
           src="/logo.svg"
@@ -21,10 +22,10 @@ export const Intro = () => {
       </p>
 
       <div className="flex w-full space-x-4 pt-6">
-        <button className="w-2/4 border border-white p-4 text-lg text-green-500">
+        <button className="w-2/4 border border-white p-4 text-lg text-green-500 transition hover:bg-white/5">
           I have a Wallet
         </button>
-        <button className="w-2/4 border border-white p-4 text-lg text-blue-500">
+        <button className="w-2/4 border border-white p-4 text-lg text-blue-500 transition hover:bg-white/5">
           Create Wallet
         </button>
       </div>
