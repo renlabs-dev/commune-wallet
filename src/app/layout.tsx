@@ -1,11 +1,7 @@
 import "~/styles/globals.css";
 
-import { Inter } from "next/font/google";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+import { Header, Footer } from "./_components";
+import { cairo } from "./fonts";
 
 export const metadata = {
   title: "Commune Wallet",
@@ -19,7 +15,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable}`}>{children}</body>
+      <body className={`font-sans ${cairo.className}`}>
+        <Header />
+        {children}
+        <Footer />
+      </body>
     </html>
   );
 }
