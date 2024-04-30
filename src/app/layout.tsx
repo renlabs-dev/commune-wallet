@@ -15,7 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`font-sans ${cairo.className}`}>
+      <body
+        className={`font-sans ${cairo.className} bg-[url(/bg-pattern.svg)]`}
+      >
         <Header />
         {children}
         <Footer />
