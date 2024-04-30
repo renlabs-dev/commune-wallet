@@ -13,7 +13,7 @@ export const Header = () => {
           priority
           className="mr-[3px]"
         />
-        <span className={`ml-2 text-2xl font-thin text-gray-400/70`}>
+        <span className={`ml-2 text-2xl font-light text-white`}>
           Commune Wallet
         </span>
       </Link>

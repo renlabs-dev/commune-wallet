@@ -1,6 +1,12 @@
 import { Icon } from "..";
+import { copy_to_clipboard, small_address } from "~/utils";
+import { usePolkadot } from "~/hooks/polkadot";
 
 export const Wallet = () => {
+  const { selectedAccount } = usePolkadot();
+
+  if (!selectedAccount) return null;
+
   return (
     <div className="flex w-full max-w-screen-md flex-col items-center justify-center divide-y divide-gray-400/40 border border-white bg-black bg-opacity-50 p-8">
       <div className="flex w-full flex-col items-center justify-center text-lg text-gray-400/70">
@@ -8,9 +14,12 @@ export const Wallet = () => {
         <div className="flex w-full gap-4 pb-4">
           <div className="flex w-full items-center justify-center gap-3 border border-white px-12">
             <Icon src="/icons/wallet.svg" className="h-7 w-7" />
-            <p>5FUdy5g4s...u4x8nny6uv3u</p>
+            <p>{small_address(selectedAccount.address)}</p>
           </div>
-          <button className="flex w-fit items-center justify-center gap-3 border border-white px-12 transition hover:bg-white/5">
+          <button
+            onClick={() => copy_to_clipboard(selectedAccount.address)}
+            className="flex w-fit items-center justify-center gap-3 border border-white px-12 transition hover:bg-white/5"
+          >
             <span>Copy</span>
             <Icon src="/icons/copy.svg" className="h-14 w-14" />
           </button>
