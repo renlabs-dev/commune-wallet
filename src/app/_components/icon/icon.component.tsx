@@ -13,10 +13,10 @@ export const Icon = ({
   return (
     <Link href={href ?? ""}>
       <Image
+        alt="Icon"
         src={src}
         width={100}
         height={100}
-        alt="commune logo"
         className={className}
       />
     </Link>
