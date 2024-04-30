@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -18,12 +19,21 @@ interface PolkadotApiState {
   web3FromAddress: ((address: string) => Promise<InjectedExtension>) | null;
 }
 
+interface Staking {
+  validator: string;
+  amount: string;
+  callback?: () => void;
+}
+
 interface PolkadotContextType {
   api: ApiPromise | null;
   isConnected: boolean;
   isInitialized: boolean;
 
   handleConnect: () => void;
+
+  addStake: (args: Staking) => void;
+  removeStake: (args: Staking) => void;
 
   accounts: InjectedAccountWithMeta[];
   selectedAccount: InjectedAccountWithMeta | undefined;
@@ -135,6 +145,54 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     setOpenModal(false);
   }
 
+  async function addStake({ validator, amount, callback }: Staking) {
+    if (
+      !api ||
+      !selectedAccount ||
+      !polkadotApi.web3FromAddress ||
+      !api.tx.subspaceModule?.addStake
+    )
+      return;
+    const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
+    const amt = Math.floor(Number(amount) * 10 ** 9);
+    api.tx.subspaceModule
+      .addStake(0, validator, amt)
+      .signAndSend(selectedAccount.address, {
+        signer: injector.signer,
+      })
+      .then(() => {
+        toast.success("Stake added successfully");
+        callback?.();
+      })
+      .catch((err) => {
+        toast.error(err as string);
+      });
+  }
+
+  async function removeStake({ validator, amount, callback }: Staking) {
+    if (
+      !api ||
+      !selectedAccount ||
+      !polkadotApi.web3FromAddress ||
+      !api.tx.subspaceModule?.removeStake
+    )
+      return;
+    const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
+    const amt = Math.floor(Number(amount) * 10 ** 9);
+    api.tx.subspaceModule
+      .removeStake(0, validator, amt)
+      .signAndSend(selectedAccount.address, {
+        signer: injector.signer,
+      })
+      .then(() => {
+        toast.success("Stake removed successfully");
+        callback?.();
+      })
+      .catch((err) => {
+        toast.error(err as string);
+      });
+  }
+
   return (
     <PolkadotContext.Provider
       value={{
@@ -145,8 +203,10 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
         accounts,
         selectedAccount,
 
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         handleConnect,
+
+        addStake,
+        removeStake,
       }}
     >
       <WalletModal
