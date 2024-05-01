@@ -1,21 +1,46 @@
+"use client";
+
+import React, { useState } from "react";
 import { Icon } from "..";
 import { copy_to_clipboard, small_address } from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
 
+type MenuType = "send" | "receive" | "stake" | "unstake" | null;
+
 export const Wallet = () => {
-  const { selectedAccount } = usePolkadot();
+  const { selectedAccount, handleConnect, addStake, removeStake } =
+    usePolkadot();
+  const [activeMenu, setActiveMenu] = useState<MenuType>(null);
+  const [validator, setValidator] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
 
   if (!selectedAccount) return null;
 
+  const handleMenuClick = (type: MenuType) => {
+    setActiveMenu(type);
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    activeMenu === "stake"
+      ? addStake({ validator, amount })
+      : removeStake({ validator, amount });
+    event.preventDefault();
+
+    // 5EJ9AUpSGafWeagdP5nwc5AwcYBkagYSZyx2BmLKWJrGBZUZ
+  };
+
   return (
-    <div className="flex w-full max-w-screen-md flex-col items-center justify-center divide-y divide-gray-400/40 border border-white bg-black bg-opacity-50 p-8">
+    <div className="flex w-full max-w-screen-md flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-8">
       <div className="flex w-full flex-col items-center justify-center text-lg text-gray-400/70">
         <p className="py-2">MAIN NET</p>
         <div className="flex w-full gap-4 pb-4">
-          <div className="flex w-full items-center justify-center gap-3 border border-white px-12">
+          <button
+            onClick={handleConnect}
+            className="flex w-full items-center justify-center gap-3 border border-white px-12 transition hover:bg-white/5"
+          >
             <Icon src="/icons/wallet.svg" className="h-7 w-7" />
             <p>{small_address(selectedAccount.address)}</p>
-          </div>
+          </button>
           <button
             onClick={() => copy_to_clipboard(selectedAccount.address)}
             className="flex w-fit items-center justify-center gap-3 border border-white px-12 transition hover:bg-white/5"
@@ -31,53 +56,94 @@ export const Wallet = () => {
             key={button.src}
             src={button.src}
             text={button.text}
+            activeMenu={activeMenu}
+            bgColor={button.bgColor}
             textColor={button.textColor}
+            onClick={() =>
+              handleMenuClick(button.text.toLowerCase() as MenuType)
+            }
           />
         ))}
       </div>
-      <div className="flex w-full flex-col space-y-4 pt-4 text-lg text-gray-400/70">
-        <div className="flex w-full items-center justify-between border border-white p-4">
-          <div className="flex items-center gap-1">
-            <Icon src="/logo-colored.svg" className="h-8 w-8" />
-            <p>COMAI</p>
-          </div>
-          <p>0.00</p>
+      {activeMenu && (
+        <div className="mt-4 w-full border">
+          <form
+            onSubmit={handleSubmit}
+            className="flex w-full flex-col gap-4 p-4"
+          >
+            <input
+              type="text"
+              value={validator}
+              onChange={(e) => setValidator(e.target.value)}
+              placeholder="Validator Address"
+              className="border bg-black p-2"
+            />
+            <input
+              type="text"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Value"
+              className="border bg-black p-2"
+            />
+            <button
+              type="submit"
+              className="border border-white p-2 text-green-500"
+            >
+              Submit
+            </button>
+          </form>
         </div>
-        <div className="flex w-full items-center justify-between border border-white p-4">
-          <div className="flex items-center gap-1">
-            <Icon src="/logo.svg" className="h-8 w-8" />
-            <p>STAKED</p>
-          </div>
-          <p>0.00</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
 
 const buttons = [
-  { src: "/icons/send.svg", text: "Send", textColor: "text-red-500" },
-  { src: "/icons/receive.svg", text: "Receive", textColor: "text-blue-500" },
-  { src: "/icons/stake.svg", text: "Stake", textColor: "text-amber-500" },
+  {
+    src: "/icons/send.svg",
+    text: "Send",
+    textColor: "text-red-500",
+    bgColor: "bg-red-500/20",
+  },
+  {
+    src: "/icons/receive.svg",
+    text: "Receive",
+    textColor: "text-blue-500",
+    bgColor: "bg-blue-500/20",
+  },
+  {
+    src: "/icons/stake.svg",
+    text: "Stake",
+    textColor: "text-amber-500",
+    bgColor: "bg-amber-500/20",
+  },
   {
     src: "/icons/unstake.svg",
     text: "Unstake",
     textColor: "text-purple-500",
+    bgColor: "bg-purple-500/20",
   },
 ];
 
 const IconButton = ({
   src,
   text,
+  bgColor,
+  activeMenu,
   textColor,
+  onClick,
 }: {
   src: string;
   text: string;
+  bgColor: string;
   textColor: string;
+  activeMenu: MenuType;
+  onClick: () => void;
 }) => {
   return (
     <button
-      className={`flex flex-col items-center border border-white p-10 text-lg ${textColor} transition hover:bg-white/5`}
+      onClick={onClick}
+      className={`flex flex-col items-center border border-white p-10 text-lg ${textColor} transition hover:bg-white/5 ${activeMenu === text.toLowerCase() ? bgColor : ""}`}
     >
       <Icon src={src} className="h-10 w-10" />
       <span>{text}</span>
