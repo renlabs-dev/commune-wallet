@@ -2,13 +2,13 @@
 
 import React, { useState } from "react";
 import { Icon } from "..";
-import { copy_to_clipboard, small_address } from "~/utils";
+import { copy_to_clipboard, format_token, small_address } from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
 
 type MenuType = "send" | "receive" | "stake" | "unstake" | null;
 
 export const Wallet = () => {
-  const { selectedAccount, handleConnect, addStake, removeStake } =
+  const { selectedAccount, handleConnect, addStake, removeStake, stakeData } =
     usePolkadot();
   const [activeMenu, setActiveMenu] = useState<MenuType>(null);
   const [validator, setValidator] = useState<string>("");
@@ -29,10 +29,23 @@ export const Wallet = () => {
     // 5EJ9AUpSGafWeagdP5nwc5AwcYBkagYSZyx2BmLKWJrGBZUZ
   };
 
+  let userStakeWeight: bigint | null = null;
+  if (stakeData != null && selectedAccount != null) {
+    const user_stake_entry = stakeData.stake_out.per_addr.get(
+      selectedAccount.address,
+    );
+    userStakeWeight = user_stake_entry ?? 0n;
+  }
+
   return (
     <div className="flex w-full max-w-screen-md flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-8">
       <div className="flex w-full flex-col items-center justify-center text-lg text-gray-400/70">
         <p className="py-2">MAIN NET</p>
+        {userStakeWeight !== null && (
+          <p className="py-2">
+            Your stake: {format_token(userStakeWeight)} COMAI
+          </p>
+        )}
         <div className="flex w-full gap-4 pb-4">
           <button
             onClick={handleConnect}
