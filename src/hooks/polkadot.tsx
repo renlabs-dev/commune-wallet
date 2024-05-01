@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { ApiPromise, SubmittableResult, WsProvider } from "@polkadot/api";
 
 import {
   type InjectedExtension,
@@ -19,10 +19,15 @@ interface PolkadotApiState {
   web3FromAddress: ((address: string) => Promise<InjectedExtension>) | null;
 }
 
+export type VoteStatus = {
+  finalized: boolean;
+  status: "SUCCESS" | "ERROR" | "PENDING" | null;
+  message: string | null;
+};
+
 interface Staking {
   validator: string;
   amount: string;
-  callback?: () => void;
 }
 
 interface PolkadotContextType {
@@ -145,7 +150,10 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     setOpenModal(false);
   }
 
-  async function addStake({ validator, amount, callback }: Staking) {
+  async function addStake(
+    { validator, amount }: Staking,
+    callback?: (vote_status: VoteStatus) => void,
+  ) {
     if (
       !api ||
       !selectedAccount ||
@@ -157,19 +165,44 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     const amt = Math.floor(Number(amount) * 10 ** 9);
     api.tx.subspaceModule
       .addStake(0, validator, amt)
-      .signAndSend(selectedAccount.address, {
-        signer: injector.signer,
-      })
-      .then(() => {
-        toast.success("Stake added successfully");
-        callback?.();
-      })
+      .signAndSend(
+        selectedAccount.address,
+        { signer: injector.signer },
+        (result: SubmittableResult) => {
+          if (result.isInBlock) {
+            callback?.({
+              finalized: false,
+              status: "PENDING",
+              message: "Staking in progress",
+            });
+          }
+          if (result.isFinalized) {
+            callback?.({
+              finalized: true,
+              status: "SUCCESS",
+              message: "Stake added successfully",
+            });
+            toast.success("Stake added successfully");
+          }
+          if (result.isError) {
+            callback?.({
+              finalized: true,
+              status: "ERROR",
+              message: "Stake failed",
+            });
+            toast.error("Stake failed");
+          }
+        },
+      )
       .catch((err) => {
         toast.error(err as string);
       });
   }
 
-  async function removeStake({ validator, amount, callback }: Staking) {
+  async function removeStake(
+    { validator, amount }: Staking,
+    callback?: (vote_status: VoteStatus) => void,
+  ) {
     if (
       !api ||
       !selectedAccount ||
@@ -181,13 +214,35 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     const amt = Math.floor(Number(amount) * 10 ** 9);
     api.tx.subspaceModule
       .removeStake(0, validator, amt)
-      .signAndSend(selectedAccount.address, {
-        signer: injector.signer,
-      })
-      .then(() => {
-        toast.success("Stake removed successfully");
-        callback?.();
-      })
+      .signAndSend(
+        selectedAccount.address,
+        { signer: injector.signer },
+        (result: SubmittableResult) => {
+          if (result.isInBlock) {
+            callback?.({
+              finalized: false,
+              status: "PENDING",
+              message: "Staking in progress",
+            });
+          }
+          if (result.isFinalized) {
+            callback?.({
+              finalized: true,
+              status: "SUCCESS",
+              message: "Stake added successfully",
+            });
+            toast.success("Stake added successfully");
+          }
+          if (result.isError) {
+            callback?.({
+              finalized: true,
+              status: "ERROR",
+              message: "Stake failed",
+            });
+            toast.error("Stake failed");
+          }
+        },
+      )
       .catch((err) => {
         toast.error(err as string);
       });
