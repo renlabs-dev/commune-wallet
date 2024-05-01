@@ -1,57 +1,42 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-
-import { ApiPromise, SubmittableResult, WsProvider } from "@polkadot/api";
-
-import {
-  type InjectedExtension,
-  type InjectedAccountWithMeta,
-} from "@polkadot/extension-inject/types";
-
 import { toast } from "react-toastify";
 import { WalletModal } from "~/app/_components";
 
-interface PolkadotApiState {
-  web3Accounts: (() => Promise<InjectedAccountWithMeta[]>) | null;
-  web3Enable: ((appName: string) => Promise<InjectedExtension[]>) | null;
-  web3FromAddress: ((address: string) => Promise<InjectedExtension>) | null;
-}
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { ApiPromise, type SubmittableResult, WsProvider } from "@polkadot/api";
+import { type InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 
-export type VoteStatus = {
-  finalized: boolean;
-  status: "SUCCESS" | "ERROR" | "PENDING" | null;
-  message: string | null;
-};
-
-interface Staking {
-  validator: string;
-  amount: string;
-}
+import {
+  type Staking,
+  type StakeData,
+  type VoteStatus,
+  type PolkadotApiState,
+  type PolkadotProviderProps,
+} from "~/types";
+import { get_all_stake_out } from "~/utils";
 
 interface PolkadotContextType {
   api: ApiPromise | null;
   isConnected: boolean;
   isInitialized: boolean;
 
+  accounts: InjectedAccountWithMeta[];
+  selectedAccount: InjectedAccountWithMeta | undefined;
+
+  blockNumber: number;
+  stakeData: StakeData | null;
+
   handleConnect: () => void;
 
   addStake: (args: Staking) => void;
   removeStake: (args: Staking) => void;
-
-  accounts: InjectedAccountWithMeta[];
-  selectedAccount: InjectedAccountWithMeta | undefined;
 }
 
 const PolkadotContext = createContext<PolkadotContextType | undefined>(
   undefined,
 );
-
-interface PolkadotProviderProps {
-  children: React.ReactNode;
-  wsEndpoint: string;
-}
 
 export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
   children,
@@ -72,6 +57,9 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
   const [selectedAccount, setSelectedAccount] =
     useState<InjectedAccountWithMeta>();
+
+  const [stakeData, setStakeData] = useState<StakeData | null>(null);
+  const [blockNumber, setBlockNumber] = useState(0);
 
   async function loadPolkadotApi() {
     const { web3Accounts, web3Enable, web3FromAddress } = await import(
@@ -248,6 +236,23 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       });
   }
 
+  useEffect(() => {
+    if (api) {
+      void api.rpc.chain.subscribeNewHeads((header) => {
+        setBlockNumber(header.number.toNumber());
+      });
+
+      get_all_stake_out(api)
+        .then((stake_data_result) => {
+          setStakeData(stake_data_result);
+        })
+        .catch((e) => {
+          toast.error(`Error fetching stake out map", ${e}`);
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [api]);
+
   return (
     <PolkadotContext.Provider
       value={{
@@ -257,6 +262,9 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
 
         accounts,
         selectedAccount,
+
+        blockNumber,
+        stakeData,
 
         handleConnect,
 
