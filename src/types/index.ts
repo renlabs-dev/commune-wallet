@@ -34,4 +34,5 @@ export type TransactionStatus = {
 export interface Staking {
   validator: string;
   amount: string;
+  callback?: (status: TransactionStatus) => void;
 }

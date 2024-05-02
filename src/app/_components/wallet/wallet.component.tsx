@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Icon, Loading } from "..";
 import { copy_to_clipboard, format_token, small_address } from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
@@ -14,17 +14,22 @@ export const Wallet = () => {
   const [activeMenu, setActiveMenu] = useState<MenuType>(null);
   const [validator, setValidator] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
-  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>({
-    status: null,
-    finalized: false,
-    message: null
-  });
+  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
+    {
+      status: null,
+      finalized: false,
+      message: null,
+    },
+  );
 
-  const [inputError, setInputError] = useState<{ validator: string | null, value: string | null }>({ validator: null, value: null })
+  const [inputError, setInputError] = useState<{
+    validator: string | null;
+    value: string | null;
+  }>({ validator: null, value: null });
 
   const handleCallback = (callbackReturn: TransactionStatus) => {
-    setTransactionStatus(callbackReturn)
-  }
+    setTransactionStatus(callbackReturn);
+  };
 
   if (!selectedAccount) return null;
 
@@ -34,61 +39,83 @@ export const Wallet = () => {
       text: "Send",
       textColor: "text-red-500",
       bgColor: "bg-red-500/20",
-      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType)
+      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType),
     },
     {
       src: "/icons/receive.svg",
       text: "Receive",
       textColor: "text-blue-500",
       bgColor: "bg-blue-500/20",
-      handleMenuClick: () => copy_to_clipboard(selectedAccount.address)
+      handleMenuClick: () => copy_to_clipboard(selectedAccount.address),
     },
     {
       src: "/icons/stake.svg",
       text: "Stake",
       textColor: "text-amber-500",
       bgColor: "bg-amber-500/20",
-      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType)
+      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType),
     },
     {
       src: "/icons/unstake.svg",
       text: "Unstake",
       textColor: "text-purple-500",
       bgColor: "bg-purple-500/20",
-      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType)
+      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType),
     },
   ];
 
   const handleMenuClick = (type: MenuType) => {
-    setValidator('')
-    setAmount('')
+    setValidator("");
+    setAmount("");
     setActiveMenu(type);
   };
 
   const handleCheckInput = () => {
-    setInputError({ validator: null, value: null })
-    if (!validator) setInputError((prev) => ({ ...prev, validator: 'Validator Address cannot be empty' }))
-    if (!amount) setInputError((prev) => ({ ...prev, value: 'Value cannot be empty' }))
-    return !!(amount && validator)
-  }
+    setInputError({ validator: null, value: null });
+    if (!validator)
+      setInputError((prev) => ({
+        ...prev,
+        validator: "Validator Address cannot be empty",
+      }));
+    if (!amount)
+      setInputError((prev) => ({ ...prev, value: "Value cannot be empty" }));
+    return !!(amount && validator);
+  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setTransactionStatus({
       status: null,
       finalized: false,
-      message: null
-    })
+      message: null,
+    });
 
-    const isValidInput = handleCheckInput()
-    if (!isValidInput) return
+    const isValidInput = handleCheckInput();
+    if (!isValidInput) return;
 
-    activeMenu === "stake"
-      ? addStake({ validator, amount }, handleCallback)
-      : removeStake({ validator, amount }, handleCallback);
-    console.log('finalizou o handle submit')
+    if (activeMenu === "stake") {
+      addStake({
+        validator,
+        amount,
+        callback: handleCallback,
+      });
+    }
 
-    // 5EJ9AUpSGafWeagdP5nwc5AwcYBkagYSZyx2BmLKWJrGBZUZ
+    if (activeMenu === "unstake") {
+      removeStake({
+        validator,
+        amount,
+        callback: handleCallback,
+      });
+    }
+
+    if (activeMenu === "send") {
+      // TODO
+    }
+
+    if (activeMenu === "receive") {
+      void copy_to_clipboard(selectedAccount.address);
+    }
   };
 
   let userStakeWeight: bigint | null = null;
@@ -98,10 +125,6 @@ export const Wallet = () => {
     );
     userStakeWeight = user_stake_entry ?? 0n;
   }
-
-  useEffect(() => {
-    console.log(transactionStatus)
-  }, [transactionStatus])
 
   return (
     <div className="flex w-full max-w-screen-md flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-8">
@@ -114,7 +137,7 @@ export const Wallet = () => {
         )}
 
         {userStakeWeight === null && (
-          <div className="w-1/3 bg-gray-500 py-2 mb-3 mt-4 animate-pulse" />
+          <div className="mb-3 mt-4 w-1/3 animate-pulse bg-gray-500 py-2" />
         )}
 
         <div className="flex w-full gap-4 pb-4">
@@ -158,32 +181,32 @@ export const Wallet = () => {
             <input
               type="text"
               value={validator}
-              disabled={transactionStatus.status === 'PENDING'}
+              disabled={transactionStatus.status === "PENDING"}
               onChange={(e) => setValidator(e.target.value)}
               placeholder="Validator Address"
               className="border bg-black p-2"
             />
-            {inputError.validator &&
-              <p className={`mb-1 -mt-2 text-red-400 flex text-base text-left`}>
+            {inputError.validator && (
+              <p className={`-mt-2 mb-1 flex text-left text-base text-red-400`}>
                 {inputError.validator}
               </p>
-            }
+            )}
             <input
               type="text"
-              disabled={transactionStatus.status === 'PENDING'}
+              disabled={transactionStatus.status === "PENDING"}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Value"
               className="border bg-black p-2"
             />
-            {inputError.value &&
-              <p className={`mb-1 -mt-2 text-red-400 flex text-base text-left`}>
+            {inputError.value && (
+              <p className={`-mt-2 mb-1 flex text-left text-base text-red-400`}>
                 {inputError.value}
               </p>
-            }
+            )}
             <button
               type="submit"
-              disabled={transactionStatus.status === 'PENDING'}
+              disabled={transactionStatus.status === "PENDING"}
               className="border border-white p-2 text-green-500"
             >
               Submit
@@ -191,14 +214,14 @@ export const Wallet = () => {
           </form>
         </div>
       )}
-      {transactionStatus.status &&
-        <p className={` pt-6 ${transactionStatus.status === "PENDING" && 'text-yellow-400'} ${transactionStatus.status === "ERROR" && 'text-red-400'} ${transactionStatus.status === "SUCCESS" && 'text-green-400'} flex text-base text-left`}>
-          {transactionStatus.status === "PENDING" &&
-            <Loading />
-          }
+      {transactionStatus.status && (
+        <p
+          className={` pt-6 ${transactionStatus.status === "PENDING" && "text-yellow-400"} ${transactionStatus.status === "ERROR" && "text-red-400"} ${transactionStatus.status === "SUCCESS" && "text-green-400"} flex text-left text-base`}
+        >
+          {transactionStatus.status === "PENDING" && <Loading />}
           {transactionStatus.message}
         </p>
-      }
+      )}
     </div>
   );
 };

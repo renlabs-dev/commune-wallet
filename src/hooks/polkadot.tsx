@@ -4,18 +4,19 @@
 import { toast } from "react-toastify";
 import { WalletModal } from "~/app/_components";
 
+import { get_all_stake_out } from "~/utils";
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ApiPromise, type SubmittableResult, WsProvider } from "@polkadot/api";
-import { type InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 
 import {
   type Staking,
   type StakeData,
-  type TransactionStatus,
   type PolkadotApiState,
   type PolkadotProviderProps,
 } from "~/types";
-import { get_all_stake_out } from "~/utils";
+import { type DispatchError } from "@polkadot/types/interfaces";
+import { type InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 
 interface PolkadotContextType {
   api: ApiPromise | null;
@@ -138,10 +139,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     setOpenModal(false);
   }
 
-  async function addStake(
-    { validator, amount }: Staking,
-    callback?: (vote_status: TransactionStatus) => void,
-  ) {
+  async function addStake({ validator, amount, callback }: Staking) {
     if (
       !api ||
       !selectedAccount ||
@@ -158,28 +156,49 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
         selectedAccount.address,
         { signer: injector.signer },
         (result: SubmittableResult) => {
-          if (result.isInBlock) {
+          if (result.status.isInBlock) {
             callback?.({
               finalized: false,
               status: "PENDING",
               message: "Staking in progress",
             });
           }
-          if (result.isFinalized) {
-            callback?.({
-              finalized: true,
-              status: "SUCCESS",
-              message: "Stake added successfully",
+          if (result.status.isFinalized) {
+            result.events.forEach(({ event }) => {
+              if (api.events.system?.ExtrinsicSuccess?.is(event)) {
+                toast.success("Voting successful");
+                callback?.({
+                  finalized: true,
+                  status: "SUCCESS",
+                  message: "Staked successfully",
+                });
+              } else if (api.events.system?.ExtrinsicFailed?.is(event)) {
+                const [dispatchError] = event.data as unknown as [
+                  DispatchError,
+                ];
+
+                let msg;
+                if (dispatchError.isModule) {
+                  const mod = dispatchError.asModule;
+                  const error = api.registry.findMetaError(mod);
+
+                  if (error.section && error.name && error.docs) {
+                    const errorMessage = `${error.name}`;
+                    msg = `Staking failed: ${errorMessage}`;
+                  } else {
+                    msg = `Staking failed: ${dispatchError.type}`;
+                  }
+                } else {
+                  msg = `Staking failed: ${dispatchError.toString()}`;
+                }
+                toast.error(msg);
+                callback?.({
+                  finalized: true,
+                  status: "ERROR",
+                  message: msg,
+                });
+              }
             });
-            toast.success("Stake added successfully");
-          }
-          if (result.isError) {
-            callback?.({
-              finalized: true,
-              status: "ERROR",
-              message: "Stake failed",
-            });
-            toast.error("Stake failed");
           }
         },
       )
@@ -188,10 +207,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       });
   }
 
-  async function removeStake(
-    { validator, amount }: Staking,
-    callback?: (vote_status: TransactionStatus) => void,
-  ) {
+  async function removeStake({ validator, amount, callback }: Staking) {
     if (
       !api ||
       !selectedAccount ||
