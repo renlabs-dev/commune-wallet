@@ -37,3 +37,9 @@ export interface Staking {
   amount: string;
   callback?: (status: TransactionStatus) => void;
 }
+
+export interface Transfer {
+  to: string;
+  amount: string;
+  callback?: (status: TransactionStatus) => void;
+}
