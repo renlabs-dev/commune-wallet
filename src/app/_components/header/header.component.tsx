@@ -17,7 +17,7 @@ export const Header = () => {
           Commune Wallet
         </span>
       </Link>
-      <nav className="col-span-2 flex gap-8 text-lg">
+      <nav className="col-span-2 hidden gap-8 text-lg md:flex">
         <Link href="https://communeai.org/" target="_blank">
           Home Page
         </Link>

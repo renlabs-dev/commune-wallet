@@ -2,7 +2,7 @@ import { Icon } from "..";
 
 export const Footer = () => {
   return (
-    <footer className="fixed bottom-0 flex w-full items-center justify-between border-t border-white bg-black bg-opacity-50 px-12 py-8 text-gray-300">
+    <footer className="flex w-full flex-col items-center justify-between gap-3 border-t border-white bg-black bg-opacity-50 px-12 py-8 text-gray-300 md:fixed md:bottom-0 md:flex-row">
       <p>Renovating the way we build software for everyone.</p>
 
       <div className="flex gap-4">
