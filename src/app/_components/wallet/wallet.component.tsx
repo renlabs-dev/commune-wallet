@@ -9,8 +9,14 @@ import { type TransactionStatus } from "~/types";
 type MenuType = "send" | "receive" | "stake" | "unstake" | null;
 
 export const Wallet = () => {
-  const { selectedAccount, handleConnect, addStake, removeStake, stakeData } =
-    usePolkadot();
+  const {
+    selectedAccount,
+    handleConnect,
+    addStake,
+    removeStake,
+    stakeData,
+    transfer,
+  } = usePolkadot();
   const [activeMenu, setActiveMenu] = useState<MenuType>(null);
   const [validator, setValidator] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
@@ -116,7 +122,11 @@ export const Wallet = () => {
     }
 
     if (activeMenu === "send") {
-      // TODO
+      transfer({
+        to: validator,
+        amount,
+        callback: handleCallback,
+      });
     }
 
     if (activeMenu === "receive") {
@@ -189,7 +199,7 @@ export const Wallet = () => {
               value={validator}
               disabled={transactionStatus.status === "PENDING"}
               onChange={(e) => setValidator(e.target.value)}
-              placeholder="Validator Address"
+              placeholder={activeMenu === "stake" ? "Validator Address" : "To"}
               className="border bg-black p-2"
             />
             {inputError.validator && (

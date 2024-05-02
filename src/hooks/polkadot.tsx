@@ -11,6 +11,7 @@ import { ApiPromise, type SubmittableResult, WsProvider } from "@polkadot/api";
 
 import {
   type Staking,
+  type Transfer,
   type StakeData,
   type PolkadotApiState,
   type PolkadotProviderProps,
@@ -31,6 +32,7 @@ interface PolkadotContextType {
 
   handleConnect: () => void;
 
+  transfer: (args: Transfer) => void;
   addStake: (args: Staking) => void;
   removeStake: (args: Staking) => void;
 }
@@ -224,28 +226,119 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
         selectedAccount.address,
         { signer: injector.signer },
         (result: SubmittableResult) => {
-          if (result.isInBlock) {
+          if (result.status.isInBlock) {
             callback?.({
               finalized: false,
               status: "PENDING",
               message: "Unstaking in progress",
             });
           }
-          if (result.isFinalized) {
-            callback?.({
-              finalized: true,
-              status: "SUCCESS",
-              message: "Unstaked successfully",
+          if (result.status.isFinalized) {
+            result.events.forEach(({ event }) => {
+              if (api.events.system?.ExtrinsicSuccess?.is(event)) {
+                toast.success("Unstaking successful");
+                callback?.({
+                  finalized: true,
+                  status: "SUCCESS",
+                  message: "Unstaked successfully",
+                });
+              } else if (api.events.system?.ExtrinsicFailed?.is(event)) {
+                const [dispatchError] = event.data as unknown as [
+                  DispatchError,
+                ];
+
+                let msg;
+                if (dispatchError.isModule) {
+                  const mod = dispatchError.asModule;
+                  const error = api.registry.findMetaError(mod);
+
+                  if (error.section && error.name && error.docs) {
+                    const errorMessage = `${error.name}`;
+                    msg = `Unstaking failed: ${errorMessage}`;
+                  } else {
+                    msg = `Unstaking failed: ${dispatchError.type}`;
+                  }
+                } else {
+                  msg = `Unstaking failed: ${dispatchError.toString()}`;
+                }
+                toast.error(msg);
+                callback?.({
+                  finalized: true,
+                  status: "ERROR",
+                  message: msg,
+                });
+              }
             });
-            toast.success("Unstaked successfully");
           }
-          if (result.isError) {
+        },
+      )
+      .catch((err) => {
+        toast.error(err as string);
+      });
+  }
+
+  async function transfer({ to, amount, callback }: Transfer) {
+    if (
+      !api ||
+      !selectedAccount ||
+      !polkadotApi.web3FromAddress ||
+      !api.tx.balances?.transfer
+    )
+      return;
+
+    const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
+
+    const amt = Math.floor(Number(amount) * 10 ** 9);
+
+    api.tx.balances
+      .transfer(to, amt)
+      .signAndSend(
+        selectedAccount.address,
+        { signer: injector.signer },
+        (result: SubmittableResult) => {
+          if (result.status.isInBlock) {
             callback?.({
-              finalized: true,
-              status: "ERROR",
-              message: "Unstake failed",
+              finalized: false,
+              status: "PENDING",
+              message: "Transfer in progress",
             });
-            toast.error("Unstake failed");
+          }
+          if (result.status.isFinalized) {
+            result.events.forEach(({ event }) => {
+              if (api.events.system?.ExtrinsicSuccess?.is(event)) {
+                toast.success("Transfer successful");
+                callback?.({
+                  finalized: true,
+                  status: "SUCCESS",
+                  message: "Transfer successful",
+                });
+              } else if (api.events.system?.ExtrinsicFailed?.is(event)) {
+                const [dispatchError] = event.data as unknown as [
+                  DispatchError,
+                ];
+
+                let msg;
+                if (dispatchError.isModule) {
+                  const mod = dispatchError.asModule;
+                  const error = api.registry.findMetaError(mod);
+
+                  if (error.section && error.name && error.docs) {
+                    const errorMessage = `${error.name}`;
+                    msg = `Transfer failed: ${errorMessage}`;
+                  } else {
+                    msg = `Transfer failed: ${dispatchError.type}`;
+                  }
+                } else {
+                  msg = `Transfer failed: ${dispatchError.toString()}`;
+                }
+                toast.error(msg);
+                callback?.({
+                  finalized: true,
+                  status: "ERROR",
+                  message: msg,
+                });
+              }
+            });
           }
         },
       )
@@ -286,6 +379,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
 
         handleConnect,
 
+        transfer,
         addStake,
         removeStake,
       }}
