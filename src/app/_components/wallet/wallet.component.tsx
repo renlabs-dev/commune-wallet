@@ -31,6 +31,7 @@ export const Wallet = () => {
   const [activeMenu, setActiveMenu] = useState<MenuType>(null);
   const [validator, setValidator] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
+  const [netUid, setNetUid] = useState<number>(0);
 
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
     {
@@ -85,6 +86,7 @@ export const Wallet = () => {
       addStake({
         validator,
         amount,
+        netUid,
         callback: handleCallback,
       });
     }
@@ -92,6 +94,7 @@ export const Wallet = () => {
       removeStake({
         validator,
         amount,
+        netUid,
         callback: handleCallback,
       });
     }
@@ -100,6 +103,7 @@ export const Wallet = () => {
         fromValidator: selectedAccount.address,
         toValidator: validator,
         amount,
+        netUid,
         callback: handleCallback,
       });
     }
@@ -208,20 +212,29 @@ export const Wallet = () => {
               onSubmit={handleSubmit}
               className="flex w-full flex-col gap-4 p-4"
             >
-              <input
-                type="text"
-                value={validator}
-                disabled={transactionStatus.status === "PENDING"}
-                onChange={(e) => setValidator(e.target.value)}
-                placeholder={
-                  activeMenu === "stake" ||
+              <div className="w-full">
+                <p className="text-base">
+                  {activeMenu === "stake" ||
                   activeMenu === "transfer stake" ||
                   activeMenu === "unstake"
                     ? "Validator Address"
-                    : "To Address"
-                }
-                className="border bg-black p-2"
-              />
+                    : "To Address"}
+                </p>
+                <input
+                  type="text"
+                  value={validator}
+                  disabled={transactionStatus.status === "PENDING"}
+                  onChange={(e) => setValidator(e.target.value)}
+                  placeholder={
+                    activeMenu === "stake" ||
+                    activeMenu === "transfer stake" ||
+                    activeMenu === "unstake"
+                      ? "The full address of the validator"
+                      : "The full address of the recipient"
+                  }
+                  className="w-full border bg-black p-2"
+                />
+              </div>
               {inputError.validator && (
                 <p
                   className={`-mt-2 mb-1 flex text-left text-base text-red-400`}
@@ -229,20 +242,38 @@ export const Wallet = () => {
                   {inputError.validator}
                 </p>
               )}
-              <input
-                type="text"
-                disabled={transactionStatus.status === "PENDING"}
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Value"
-                className="border bg-black p-2"
-              />
+              <div className="w-full">
+                <p className="text-base">Value</p>
+                <input
+                  type="text"
+                  disabled={transactionStatus.status === "PENDING"}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="The amount of COMAI to use in the transaction"
+                  className="w-full border bg-black p-2"
+                />
+              </div>
               {inputError.value && (
                 <p
                   className={`-mt-2 mb-1 flex text-left text-base text-red-400`}
                 >
                   {inputError.value}
                 </p>
+              )}
+              {(activeMenu === "stake" ||
+                activeMenu === "unstake" ||
+                activeMenu === "transfer stake") && (
+                <div className="w-full">
+                  <p className="text-base">Net UID</p>
+                  <input
+                    type="number"
+                    disabled={transactionStatus.status === "PENDING"}
+                    value={netUid}
+                    onChange={(e) => setNetUid(parseInt(e.target.value))}
+                    placeholder="The net UID to use in the transaction"
+                    className="w-full border bg-black p-2"
+                  />
+                </div>
               )}
               <button
                 type="submit"

@@ -35,6 +35,7 @@ export type TransactionStatus = {
 export interface Staking {
   validator: string;
   amount: string;
+  netUid: number;
   callback?: (status: TransactionStatus) => void;
 }
 
@@ -48,5 +49,6 @@ export interface TransferStake {
   fromValidator: string;
   toValidator: string;
   amount: string;
+  netUid: number;
   callback?: (status: TransactionStatus) => void;
 }
