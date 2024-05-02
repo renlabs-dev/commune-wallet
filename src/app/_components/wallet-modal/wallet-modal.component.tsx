@@ -29,12 +29,12 @@ export const WalletModal = ({
       className={`fixed inset-0 z-[100] ${open ? "block" : "hidden"} animate-fade-in-down`}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-[url(/bg-pattern.svg)]" />
 
       {/* Modal */}
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4 text-center">
-          <div className="relative w-[100%] max-w-3xl transform overflow-hidden border bg-black text-left text-white">
+          <div className="relative w-[100%] max-w-3xl transform overflow-hidden border bg-black/35 text-left text-white">
             {/* Modal Header */}
             <div className="flex flex-col items-center justify-between gap-3 border-b p-6 md:flex-row">
               <div className="flex flex-col items-center md:flex-row">
@@ -72,34 +72,38 @@ export const WalletModal = ({
                 </button>
               ))}
               {!wallets.length && (
-                <div className="flex h-full flex-col items-center justify-center gap-4 text-center text-sm text-gray-500">
+                <div className="flex h-full flex-col items-center justify-center gap-4 text-center text-sm text-gray-300">
                   <div className="flex flex-col gap-2">
-                    <p>No wallet found.</p>
                     <p>
-                      Please install a Wallet extension or check permission
-                      settings.
+                      <b className="text-red-500">No wallet found</b>. Please
+                      install a Wallet extension or check permission settings.
                     </p>
                   </div>
-                  <Link
-                    href="https://polkadot.js.org/extension/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600"
-                  >
-                    Polkadot JS
-                  </Link>
-                  <Link
-                    href="https://subwallet.app/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600"
-                  >
-                    SubWallet
-                  </Link>
+                  <p>
+                    If you don&apos;t have a wallet, we recomend one of these:
+                  </p>
+                  <div className="flex gap-3">
+                    <Link
+                      href="https://subwallet.app/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-600"
+                    >
+                      SubWallet
+                    </Link>
+                    <Link
+                      href="https://polkadot.js.org/extension/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-600"
+                    >
+                      Polkadot JS
+                    </Link>
+                  </div>
                 </div>
               )}
               <button
-                className={`w-full border  p-4 text-xl font-semibold ${selectedAccount ? "border-green-500  text-green-500" : "border-gray-500 text-gray-500"} transition hover:bg-white/5`}
+                className={`w-full border  p-4 text-xl font-semibold ${selectedAccount ? "border-green-500  text-green-500" : "border-gray-500 text-gray-300"} transition hover:bg-white/5`}
                 disabled={!selectedAccount}
                 onClick={() => {
                   if (!selectedAccount) {

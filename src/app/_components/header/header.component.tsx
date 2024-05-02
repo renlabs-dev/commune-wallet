@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export const Header = () => {
   return (
-    <header className="flex w-full flex-col items-start justify-center border-b border-white bg-black bg-opacity-50 p-5 px-12 text-gray-400/70">
+    <header className="flex w-full flex-row items-start items-center justify-between border-b border-white bg-black bg-opacity-50 p-5 px-12 text-gray-300">
       <Link href="/" className={`col-span-1 flex items-center`}>
         <Image
           src={"/logo.svg"}
@@ -17,6 +17,20 @@ export const Header = () => {
           Commune Wallet
         </span>
       </Link>
+      <nav className="col-span-2 flex gap-8 text-lg">
+        <Link href="https://communeai.org/" target="_blank">
+          Home Page
+        </Link>
+        <Link href="https://governance.communeai.org/" target="_blank">
+          Governance
+        </Link>
+        <Link
+          href="https://communeai.org/docs/getting-started/intro"
+          target="_blank"
+        >
+          Docs
+        </Link>
+      </nav>
     </header>
   );
 };
