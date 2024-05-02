@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export const Header = () => {
   return (
-    <header className="flex w-full flex-row items-start items-center justify-between border-b border-white bg-black bg-opacity-50 p-5 px-12 text-gray-300">
+    <header className="flex w-full flex-row items-center justify-between border-b border-white bg-black bg-opacity-50 p-5 px-12 text-gray-300">
       <Link href="/" className={`col-span-1 flex items-center`}>
         <Image
           src={"/logo.svg"}
