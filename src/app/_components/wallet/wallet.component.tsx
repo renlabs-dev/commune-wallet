@@ -93,6 +93,12 @@ export const Wallet = () => {
     const isValidInput = handleCheckInput();
     if (!isValidInput) return;
 
+    // setTransactionStatus({
+    //   finalized: false,
+    //   status: "STARTING",
+    //   message: "Initializing request...",
+    // });
+
     if (activeMenu === "stake") {
       addStake({
         validator,
@@ -216,7 +222,7 @@ export const Wallet = () => {
       )}
       {transactionStatus.status && (
         <p
-          className={` pt-6 ${transactionStatus.status === "PENDING" && "text-yellow-400"} ${transactionStatus.status === "ERROR" && "text-red-400"} ${transactionStatus.status === "SUCCESS" && "text-green-400"} flex text-left text-base`}
+          className={` pt-6 ${transactionStatus.status === "PENDING" && "text-yellow-400"}  ${transactionStatus.status === "ERROR" && "text-red-400"} ${transactionStatus.status === "SUCCESS" && "text-green-400"} flex text-left text-base`}
         >
           {transactionStatus.status === "PENDING" && <Loading />}
           {transactionStatus.message}
