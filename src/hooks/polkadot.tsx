@@ -4,7 +4,7 @@
 import { toast } from "react-toastify";
 import { WalletModal } from "~/app/_components";
 
-import { get_all_stake_out } from "~/utils";
+import { calculate_amount, get_all_stake_out } from "~/utils";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ApiPromise, type SubmittableResult, WsProvider } from "@polkadot/api";
@@ -13,6 +13,7 @@ import {
   type Staking,
   type Transfer,
   type StakeData,
+  type TransferStake,
   type PolkadotApiState,
   type PolkadotProviderProps,
 } from "~/types";
@@ -33,6 +34,8 @@ interface PolkadotContextType {
   handleConnect: () => void;
 
   transfer: (args: Transfer) => void;
+  transferStake: (args: TransferStake) => void;
+
   addStake: (args: Staking) => void;
   removeStake: (args: Staking) => void;
 }
@@ -151,9 +154,9 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       return;
 
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
-    const amt = Math.floor(Number(amount) * 10 ** 9);
+
     api.tx.subspaceModule
-      .addStake(0, validator, amt)
+      .addStake(0, validator, calculate_amount(amount))
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -219,9 +222,9 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       return;
 
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
-    const amt = Math.floor(Number(amount) * 10 ** 9);
+
     api.tx.subspaceModule
-      .removeStake(0, validator, amt)
+      .removeStake(0, validator, calculate_amount(amount))
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -288,10 +291,81 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
 
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
 
-    const amt = Math.floor(Number(amount) * 10 ** 9);
-
     api.tx.balances
-      .transfer(to, amt)
+      .transfer(to, calculate_amount(amount))
+      .signAndSend(
+        selectedAccount.address,
+        { signer: injector.signer },
+        (result: SubmittableResult) => {
+          if (result.status.isInBlock) {
+            callback?.({
+              finalized: false,
+              status: "PENDING",
+              message: "Transfer in progress",
+            });
+          }
+          if (result.status.isFinalized) {
+            result.events.forEach(({ event }) => {
+              if (api.events.system?.ExtrinsicSuccess?.is(event)) {
+                toast.success("Transfer successful");
+                callback?.({
+                  finalized: true,
+                  status: "SUCCESS",
+                  message: "Transfer successful",
+                });
+              } else if (api.events.system?.ExtrinsicFailed?.is(event)) {
+                const [dispatchError] = event.data as unknown as [
+                  DispatchError,
+                ];
+
+                let msg;
+                if (dispatchError.isModule) {
+                  const mod = dispatchError.asModule;
+                  const error = api.registry.findMetaError(mod);
+
+                  if (error.section && error.name && error.docs) {
+                    const errorMessage = `${error.name}`;
+                    msg = `Transfer failed: ${errorMessage}`;
+                  } else {
+                    msg = `Transfer failed: ${dispatchError.type}`;
+                  }
+                } else {
+                  msg = `Transfer failed: ${dispatchError.toString()}`;
+                }
+                toast.error(msg);
+                callback?.({
+                  finalized: true,
+                  status: "ERROR",
+                  message: msg,
+                });
+              }
+            });
+          }
+        },
+      )
+      .catch((err) => {
+        toast.error(err as string);
+      });
+  }
+
+  async function transferStake({
+    fromValidator,
+    toValidator,
+    amount,
+    callback,
+  }: TransferStake) {
+    if (
+      !api ||
+      !selectedAccount ||
+      !polkadotApi.web3FromAddress ||
+      !api.tx.subspaceModule?.transferStake
+    )
+      return;
+
+    const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
+
+    api.tx.subspaceModule
+      .transferStake(0, fromValidator, toValidator, amount)
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -380,6 +454,8 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
         handleConnect,
 
         transfer,
+        transferStake,
+
         addStake,
         removeStake,
       }}

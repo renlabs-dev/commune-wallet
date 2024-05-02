@@ -6,25 +6,37 @@ import { copy_to_clipboard, format_token, small_address } from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
 import { type TransactionStatus } from "~/types";
 
-type MenuType = "send" | "receive" | "stake" | "unstake" | null;
+type MenuType =
+  | "send"
+  | "receive"
+  | "stake"
+  | "unstake"
+  | "transfer stake"
+  | null;
 
 export const Wallet = () => {
   const {
+    stakeData,
     selectedAccount,
+
     handleConnect,
+
+    transfer,
+    transferStake,
+
     addStake,
     removeStake,
-    stakeData,
-    transfer,
   } = usePolkadot();
+
   const [activeMenu, setActiveMenu] = useState<MenuType>(null);
   const [validator, setValidator] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
+
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
     {
       status: null,
-      finalized: false,
       message: null,
+      finalized: false,
     },
   );
 
@@ -38,6 +50,70 @@ export const Wallet = () => {
   };
 
   if (!selectedAccount) return null;
+
+  const handleMenuClick = (type: MenuType) => {
+    setValidator("");
+    setAmount("");
+    setActiveMenu(type);
+  };
+
+  const handleCheckInput = () => {
+    setInputError({ validator: null, value: null });
+    if (!validator)
+      setInputError((prev) => ({
+        ...prev,
+        validator: "Validator Address cannot be empty",
+      }));
+    if (!amount)
+      setInputError((prev) => ({ ...prev, value: "Value cannot be empty" }));
+    return !!(amount && validator);
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setTransactionStatus({
+      status: null,
+      finalized: false,
+      message: null,
+    });
+
+    const isValidInput = handleCheckInput();
+
+    if (!isValidInput) return;
+
+    if (activeMenu === "stake") {
+      addStake({
+        validator,
+        amount,
+        callback: handleCallback,
+      });
+    }
+    if (activeMenu === "unstake") {
+      removeStake({
+        validator,
+        amount,
+        callback: handleCallback,
+      });
+    }
+    if (activeMenu === "transfer stake") {
+      transferStake({
+        fromValidator: selectedAccount.address,
+        toValidator: validator,
+        amount,
+        callback: handleCallback,
+      });
+    }
+    if (activeMenu === "send") {
+      transfer({
+        to: validator,
+        amount,
+        callback: handleCallback,
+      });
+    }
+    if (activeMenu === "receive") {
+      void copy_to_clipboard(selectedAccount.address);
+    }
+  };
 
   const buttons = [
     {
@@ -68,71 +144,14 @@ export const Wallet = () => {
       bgColor: "bg-purple-500/20",
       handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType),
     },
+    {
+      src: "/icons/transfer-stake.svg",
+      text: "Transfer Stake",
+      textColor: "text-green-500",
+      bgColor: "bg-green-500/20",
+      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType),
+    },
   ];
-
-  const handleMenuClick = (type: MenuType) => {
-    setValidator("");
-    setAmount("");
-    setActiveMenu(type);
-  };
-
-  const handleCheckInput = () => {
-    setInputError({ validator: null, value: null });
-    if (!validator)
-      setInputError((prev) => ({
-        ...prev,
-        validator: "Validator Address cannot be empty",
-      }));
-    if (!amount)
-      setInputError((prev) => ({ ...prev, value: "Value cannot be empty" }));
-    return !!(amount && validator);
-  };
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setTransactionStatus({
-      status: null,
-      finalized: false,
-      message: null,
-    });
-
-    const isValidInput = handleCheckInput();
-    if (!isValidInput) return;
-
-    // setTransactionStatus({
-    //   finalized: false,
-    //   status: "STARTING",
-    //   message: "Initializing request...",
-    // });
-
-    if (activeMenu === "stake") {
-      addStake({
-        validator,
-        amount,
-        callback: handleCallback,
-      });
-    }
-
-    if (activeMenu === "unstake") {
-      removeStake({
-        validator,
-        amount,
-        callback: handleCallback,
-      });
-    }
-
-    if (activeMenu === "send") {
-      transfer({
-        to: validator,
-        amount,
-        callback: handleCallback,
-      });
-    }
-
-    if (activeMenu === "receive") {
-      void copy_to_clipboard(selectedAccount.address);
-    }
-  };
 
   let userStakeWeight: bigint | null = null;
   if (stakeData != null && selectedAccount != null) {
@@ -143,37 +162,29 @@ export const Wallet = () => {
   }
 
   return (
-    <div className="flex w-full max-w-screen-md flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-8">
-      <div className="flex w-full flex-col items-center justify-center text-lg text-gray-400/70">
+    <div className="my-10 flex w-fit max-w-screen-md animate-fade-in-down flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-6">
+      <div className="flex w-full flex-col items-center justify-center text-lg text-gray-300">
         <p className="py-2">MAIN NET</p>
-        {userStakeWeight !== null && (
-          <p className="py-2">
-            Your stake: {format_token(userStakeWeight)} COMAI
-          </p>
-        )}
 
-        {userStakeWeight === null && (
-          <div className="mb-3 mt-4 w-1/3 animate-pulse bg-gray-500 py-2" />
-        )}
-
-        <div className="flex w-full gap-4 pb-4">
+        <div className="flex w-full flex-col gap-4 pb-4 md:flex-row">
           <button
             onClick={handleConnect}
-            className="flex w-full items-center justify-center gap-3 border border-white px-12 transition hover:bg-white/5"
+            className="flex w-full items-center justify-center gap-3 border border-white py-4 transition hover:bg-white/5 md:py-0"
           >
             <Icon src="/icons/wallet.svg" className="h-7 w-7" />
             <p>{small_address(selectedAccount.address)}</p>
           </button>
           <button
             onClick={() => copy_to_clipboard(selectedAccount.address)}
-            className="flex w-fit items-center justify-center gap-3 border border-white px-12 transition hover:bg-white/5"
+            className="flex w-full items-center justify-center gap-3 border border-white py-4 transition  hover:bg-white/5 md:w-fit md:px-8 md:py-0"
           >
             <span>Copy</span>
-            <Icon src="/icons/copy.svg" className="h-14 w-14" />
+            <Icon src="/icons/copy.svg" className="h-7 w-7 md:h-14 md:w-14" />
           </button>
         </div>
       </div>
-      <div className="grid w-full grid-cols-2 gap-4 py-4 md:grid-cols-4">
+      <div className="animate-zoom-in mb-4 w-full border-b border-gray-400/40" />
+      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-5">
         {buttons.map((button) => (
           <IconButton
             key={button.src}
@@ -188,47 +199,61 @@ export const Wallet = () => {
           />
         ))}
       </div>
+
       {activeMenu && (
-        <div className="mt-4 w-full border">
-          <form
-            onSubmit={handleSubmit}
-            className="flex w-full flex-col gap-4 p-4"
-          >
-            <input
-              type="text"
-              value={validator}
-              disabled={transactionStatus.status === "PENDING"}
-              onChange={(e) => setValidator(e.target.value)}
-              placeholder={activeMenu === "stake" ? "Validator Address" : "To"}
-              className="border bg-black p-2"
-            />
-            {inputError.validator && (
-              <p className={`-mt-2 mb-1 flex text-left text-base text-red-400`}>
-                {inputError.validator}
-              </p>
-            )}
-            <input
-              type="text"
-              disabled={transactionStatus.status === "PENDING"}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Value"
-              className="border bg-black p-2"
-            />
-            {inputError.value && (
-              <p className={`-mt-2 mb-1 flex text-left text-base text-red-400`}>
-                {inputError.value}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={transactionStatus.status === "PENDING"}
-              className="border border-white p-2 text-green-500"
+        <>
+          <div className="animate-zoom-in mt-4 w-full border-b border-gray-400/40" />
+          <div className="animate-zoom-in mt-4 w-full border">
+            <form
+              onSubmit={handleSubmit}
+              className="flex w-full flex-col gap-4 p-4"
             >
-              Submit
-            </button>
-          </form>
-        </div>
+              <input
+                type="text"
+                value={validator}
+                disabled={transactionStatus.status === "PENDING"}
+                onChange={(e) => setValidator(e.target.value)}
+                placeholder={
+                  activeMenu === "stake" ||
+                  activeMenu === "transfer stake" ||
+                  activeMenu === "unstake"
+                    ? "Validator Address"
+                    : "To Address"
+                }
+                className="border bg-black p-2"
+              />
+              {inputError.validator && (
+                <p
+                  className={`-mt-2 mb-1 flex text-left text-base text-red-400`}
+                >
+                  {inputError.validator}
+                </p>
+              )}
+              <input
+                type="text"
+                disabled={transactionStatus.status === "PENDING"}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Value"
+                className="border bg-black p-2"
+              />
+              {inputError.value && (
+                <p
+                  className={`-mt-2 mb-1 flex text-left text-base text-red-400`}
+                >
+                  {inputError.value}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={transactionStatus.status === "PENDING"}
+                className="border border-white p-2 text-green-500"
+              >
+                Submit
+              </button>
+            </form>
+          </div>
+        </>
       )}
       {transactionStatus.status && (
         <p
@@ -238,6 +263,38 @@ export const Wallet = () => {
           {transactionStatus.message}
         </p>
       )}
+      <div className="animate-zoom-in my-4 w-full border-b border-gray-400/40" />
+      <div className="flex w-full flex-col gap-4">
+        <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
+          <div className="flex items-center gap-2 text-lg">
+            <Icon src="/logo-colored.svg" className="h-8 w-8" />{" "}
+            <p>Your Balance:</p>
+          </div>
+          <p>
+            {userStakeWeight !== null ? (
+              <span>{format_token(userStakeWeight)} COMAI</span>
+            ) : (
+              <div className="animate-pulse bg-stone-900 px-3 py-1 text-stone-400">
+                Loading Balance Info
+              </div>
+            )}
+          </p>
+        </div>
+        <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
+          <div className="flex items-center gap-2 text-lg">
+            <Icon src="/logo.svg" className="h-8 w-8" /> <p>Total Staked:</p>
+          </div>
+          <p>
+            {userStakeWeight !== null ? (
+              <span>{format_token(userStakeWeight)} COMAI</span>
+            ) : (
+              <div className="animate-pulse bg-stone-900 px-3 py-1 text-stone-400">
+                Loading Balance Info
+              </div>
+            )}
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
@@ -260,9 +317,9 @@ const IconButton = ({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center border border-white p-10 text-lg ${textColor} transition hover:bg-white/5 ${activeMenu === text.toLowerCase() ? bgColor : ""}`}
+      className={`flex flex-row items-center justify-center gap-1 border border-white p-3 text-lg md:flex-col ${textColor} transition hover:bg-white/5 ${activeMenu === text.toLowerCase() ? bgColor : ""}`}
     >
-      <Icon src={src} className="h-10 w-10" />
+      <Icon src={src} className="h-5 w-5 md:h-10 md:w-10" />
       <span>{text}</span>
     </button>
   );

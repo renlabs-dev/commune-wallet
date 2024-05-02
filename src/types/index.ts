@@ -43,3 +43,10 @@ export interface Transfer {
   amount: string;
   callback?: (status: TransactionStatus) => void;
 }
+
+export interface TransferStake {
+  fromValidator: string;
+  toValidator: string;
+  amount: string;
+  callback?: (status: TransactionStatus) => void;
+}

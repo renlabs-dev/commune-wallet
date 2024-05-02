@@ -16,6 +16,10 @@ export const copy_to_clipboard = async (text: string) => {
   }
 };
 
+export const calculate_amount = (amount: string) => {
+  return Math.floor(Number(amount) * 10 ** 9);
+};
+
 // == Numbers ==
 
 export function bigint_division(a: bigint, b: bigint, precision = 8n): number {
