@@ -144,7 +144,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     setOpenModal(false);
   }
 
-  async function addStake({ validator, amount, callback }: Staking) {
+  async function addStake({ netUid, validator, amount, callback }: Staking) {
     if (
       !api ||
       !selectedAccount ||
@@ -156,7 +156,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
 
     api.tx.subspaceModule
-      .addStake(0, validator, calculate_amount(amount))
+      .addStake(netUid, validator, calculate_amount(amount))
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -212,7 +212,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       });
   }
 
-  async function removeStake({ validator, amount, callback }: Staking) {
+  async function removeStake({ netUid, validator, amount, callback }: Staking) {
     if (
       !api ||
       !selectedAccount ||
@@ -224,7 +224,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
 
     api.tx.subspaceModule
-      .removeStake(0, validator, calculate_amount(amount))
+      .removeStake(netUid, validator, calculate_amount(amount))
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -352,6 +352,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     fromValidator,
     toValidator,
     amount,
+    netUid,
     callback,
   }: TransferStake) {
     if (
@@ -365,7 +366,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
 
     api.tx.subspaceModule
-      .transferStake(0, fromValidator, toValidator, amount)
+      .transferStake(netUid, fromValidator, toValidator, amount)
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
