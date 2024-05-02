@@ -27,6 +27,7 @@ export interface PolkadotApiState {
 
 export type TransactionStatus = {
   finalized: boolean;
+  // status: "SUCCESS" | "ERROR" | "PENDING" | "STARTING" | null; #TODO: check if it's possible/required to have a starting type to initialize the transactions
   status: "SUCCESS" | "ERROR" | "PENDING" | null;
   message: string | null;
 };
