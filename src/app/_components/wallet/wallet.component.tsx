@@ -5,6 +5,7 @@ import { Icon, Loading } from "..";
 import { copy_to_clipboard, format_token, small_address } from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
 import { type TransactionStatus } from "~/types";
+import Link from "next/link";
 
 type MenuType =
   | "send"
@@ -213,13 +214,24 @@ export const Wallet = () => {
               className="flex w-full flex-col gap-4 p-4"
             >
               <div className="w-full">
-                <p className="text-base">
+                <span className="text-base">
                   {activeMenu === "stake" ||
                   activeMenu === "transfer stake" ||
-                  activeMenu === "unstake"
-                    ? "Validator Address"
-                    : "To Address"}
-                </p>
+                  activeMenu === "unstake" ? (
+                    <div className="flex flex-col items-end gap-3 md:flex-row">
+                      <p>Validator Adress</p>
+                      <Link
+                        href="https://www.comstats.org/"
+                        target="_blank"
+                        className="text-sm text-blue-500 hover:underline"
+                      >
+                        View a list of validators here
+                      </Link>
+                    </div>
+                  ) : (
+                    "To Address"
+                  )}
+                </span>
                 <input
                   type="text"
                   value={validator}
