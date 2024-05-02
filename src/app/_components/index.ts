@@ -6,3 +6,5 @@ export { Wallet } from "./wallet";
 export { WalletModal } from "./wallet-modal";
 
 export { Icon } from "./icon";
+export { Loading } from "./loading";
+

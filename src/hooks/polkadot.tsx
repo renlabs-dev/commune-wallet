@@ -11,7 +11,7 @@ import { type InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import {
   type Staking,
   type StakeData,
-  type VoteStatus,
+  type TransactionStatus,
   type PolkadotApiState,
   type PolkadotProviderProps,
 } from "~/types";
@@ -140,7 +140,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
 
   async function addStake(
     { validator, amount }: Staking,
-    callback?: (vote_status: VoteStatus) => void,
+    callback?: (vote_status: TransactionStatus) => void,
   ) {
     if (
       !api ||
@@ -149,6 +149,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       !api.tx.subspaceModule?.addStake
     )
       return;
+
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
     const amt = Math.floor(Number(amount) * 10 ** 9);
     api.tx.subspaceModule
@@ -189,7 +190,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
 
   async function removeStake(
     { validator, amount }: Staking,
-    callback?: (vote_status: VoteStatus) => void,
+    callback?: (vote_status: TransactionStatus) => void,
   ) {
     if (
       !api ||
@@ -198,6 +199,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       !api.tx.subspaceModule?.removeStake
     )
       return;
+
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
     const amt = Math.floor(Number(amount) * 10 ** 9);
     api.tx.subspaceModule
@@ -210,24 +212,24 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
             callback?.({
               finalized: false,
               status: "PENDING",
-              message: "Staking in progress",
+              message: "Unstaking in progress",
             });
           }
           if (result.isFinalized) {
             callback?.({
               finalized: true,
               status: "SUCCESS",
-              message: "Stake added successfully",
+              message: "Unstaked successfully",
             });
-            toast.success("Stake added successfully");
+            toast.success("Unstaked successfully");
           }
           if (result.isError) {
             callback?.({
               finalized: true,
               status: "ERROR",
-              message: "Stake failed",
+              message: "Unstake failed",
             });
-            toast.error("Stake failed");
+            toast.error("Unstake failed");
           }
         },
       )
