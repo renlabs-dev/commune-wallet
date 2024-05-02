@@ -25,7 +25,7 @@ export interface PolkadotApiState {
   web3FromAddress: ((address: string) => Promise<InjectedExtension>) | null;
 }
 
-export type VoteStatus = {
+export type TransactionStatus = {
   finalized: boolean;
   status: "SUCCESS" | "ERROR" | "PENDING" | null;
   message: string | null;

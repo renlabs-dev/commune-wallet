@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { Icon } from "..";
+import React, { useEffect, useState } from "react";
+import { Icon, Loading } from "..";
 import { copy_to_clipboard, format_token, small_address } from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
+import { type TransactionStatus } from "~/types";
 
 type MenuType = "send" | "receive" | "stake" | "unstake" | null;
 
@@ -13,18 +14,79 @@ export const Wallet = () => {
   const [activeMenu, setActiveMenu] = useState<MenuType>(null);
   const [validator, setValidator] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
+  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>({
+    status: null,
+    finalized: false,
+    message: null
+  });
+
+  const [inputError, setInputError] = useState<{ validator: string | null, value: string | null }>({ validator: null, value: null })
+
+  const handleCallback = (callbackReturn: TransactionStatus) => {
+    setTransactionStatus(callbackReturn)
+  }
 
   if (!selectedAccount) return null;
 
+  const buttons = [
+    {
+      src: "/icons/send.svg",
+      text: "Send",
+      textColor: "text-red-500",
+      bgColor: "bg-red-500/20",
+      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType)
+    },
+    {
+      src: "/icons/receive.svg",
+      text: "Receive",
+      textColor: "text-blue-500",
+      bgColor: "bg-blue-500/20",
+      handleMenuClick: () => copy_to_clipboard(selectedAccount.address)
+    },
+    {
+      src: "/icons/stake.svg",
+      text: "Stake",
+      textColor: "text-amber-500",
+      bgColor: "bg-amber-500/20",
+      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType)
+    },
+    {
+      src: "/icons/unstake.svg",
+      text: "Unstake",
+      textColor: "text-purple-500",
+      bgColor: "bg-purple-500/20",
+      handleMenuClick: (menuType: MenuType) => handleMenuClick(menuType)
+    },
+  ];
+
   const handleMenuClick = (type: MenuType) => {
+    setValidator('')
+    setAmount('')
     setActiveMenu(type);
   };
 
+  const handleCheckInput = () => {
+    setInputError({ validator: null, value: null })
+    if (!validator) setInputError((prev) => ({ ...prev, validator: 'Validator Address cannot be empty' }))
+    if (!amount) setInputError((prev) => ({ ...prev, value: 'Value cannot be empty' }))
+    return !!(amount && validator)
+  }
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    activeMenu === "stake"
-      ? addStake({ validator, amount })
-      : removeStake({ validator, amount });
     event.preventDefault();
+    setTransactionStatus({
+      status: null,
+      finalized: false,
+      message: null
+    })
+
+    const isValidInput = handleCheckInput()
+    if (!isValidInput) return
+
+    activeMenu === "stake"
+      ? addStake({ validator, amount }, handleCallback)
+      : removeStake({ validator, amount }, handleCallback);
+    console.log('finalizou o handle submit')
 
     // 5EJ9AUpSGafWeagdP5nwc5AwcYBkagYSZyx2BmLKWJrGBZUZ
   };
@@ -37,6 +99,10 @@ export const Wallet = () => {
     userStakeWeight = user_stake_entry ?? 0n;
   }
 
+  useEffect(() => {
+    console.log(transactionStatus)
+  }, [transactionStatus])
+
   return (
     <div className="flex w-full max-w-screen-md flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-8">
       <div className="flex w-full flex-col items-center justify-center text-lg text-gray-400/70">
@@ -46,6 +112,11 @@ export const Wallet = () => {
             Your stake: {format_token(userStakeWeight)} COMAI
           </p>
         )}
+
+        {userStakeWeight === null && (
+          <div className="w-1/3 bg-gray-500 py-2 mb-3 mt-4 animate-pulse" />
+        )}
+
         <div className="flex w-full gap-4 pb-4">
           <button
             onClick={handleConnect}
@@ -73,7 +144,7 @@ export const Wallet = () => {
             bgColor={button.bgColor}
             textColor={button.textColor}
             onClick={() =>
-              handleMenuClick(button.text.toLowerCase() as MenuType)
+              button.handleMenuClick(button.text.toLowerCase() as MenuType)
             }
           />
         ))}
@@ -87,19 +158,32 @@ export const Wallet = () => {
             <input
               type="text"
               value={validator}
+              disabled={transactionStatus.status === 'PENDING'}
               onChange={(e) => setValidator(e.target.value)}
               placeholder="Validator Address"
               className="border bg-black p-2"
             />
+            {inputError.validator &&
+              <p className={`mb-1 -mt-2 text-red-400 flex text-base text-left`}>
+                {inputError.validator}
+              </p>
+            }
             <input
               type="text"
+              disabled={transactionStatus.status === 'PENDING'}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Value"
               className="border bg-black p-2"
             />
+            {inputError.value &&
+              <p className={`mb-1 -mt-2 text-red-400 flex text-base text-left`}>
+                {inputError.value}
+              </p>
+            }
             <button
               type="submit"
+              disabled={transactionStatus.status === 'PENDING'}
               className="border border-white p-2 text-green-500"
             >
               Submit
@@ -107,36 +191,17 @@ export const Wallet = () => {
           </form>
         </div>
       )}
+      {transactionStatus.status &&
+        <p className={` pt-6 ${transactionStatus.status === "PENDING" && 'text-yellow-400'} ${transactionStatus.status === "ERROR" && 'text-red-400'} ${transactionStatus.status === "SUCCESS" && 'text-green-400'} flex text-base text-left`}>
+          {transactionStatus.status === "PENDING" &&
+            <Loading />
+          }
+          {transactionStatus.message}
+        </p>
+      }
     </div>
   );
 };
-
-const buttons = [
-  {
-    src: "/icons/send.svg",
-    text: "Send",
-    textColor: "text-red-500",
-    bgColor: "bg-red-500/20",
-  },
-  {
-    src: "/icons/receive.svg",
-    text: "Receive",
-    textColor: "text-blue-500",
-    bgColor: "bg-blue-500/20",
-  },
-  {
-    src: "/icons/stake.svg",
-    text: "Stake",
-    textColor: "text-amber-500",
-    bgColor: "bg-amber-500/20",
-  },
-  {
-    src: "/icons/unstake.svg",
-    text: "Unstake",
-    textColor: "text-purple-500",
-    bgColor: "bg-purple-500/20",
-  },
-];
 
 const IconButton = ({
   src,
