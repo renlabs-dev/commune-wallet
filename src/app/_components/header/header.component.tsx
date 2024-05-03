@@ -7,15 +7,13 @@ export const Header = () => {
       <Link href="/" className={`col-span-1 flex items-center`}>
         <Image
           src={"/logo.svg"}
-          width={37}
-          height={45}
+          width={32}
+          height={41}
           alt="commune logo"
           priority
           className="mr-[3px]"
         />
-        <span className={`ml-2 text-2xl font-light text-white`}>
-          Commune Wallet
-        </span>
+        <span className={`ml-2 text-2xl font-light text-white`}>Wallet</span>
       </Link>
       <nav className="col-span-2 hidden gap-8 text-lg md:flex">
         <Link href="https://communeai.org/" target="_blank">

@@ -188,7 +188,7 @@ export const Wallet = () => {
           </button>
         </div>
       </div>
-      <div className="animate-zoom-in mb-4 w-full border-b border-gray-400/40" />
+      <div className="mb-4 w-full animate-zoom-in border-b border-gray-400/40" />
       <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-5">
         {buttons.map((button) => (
           <IconButton
@@ -207,8 +207,8 @@ export const Wallet = () => {
 
       {activeMenu && (
         <>
-          <div className="animate-zoom-in mt-4 w-full border-b border-gray-400/40" />
-          <div className="animate-zoom-in mt-4 w-full border">
+          <div className="mt-4 w-full animate-zoom-in border-b border-gray-400/40" />
+          <div className="mt-4 w-full animate-zoom-in border">
             <form
               onSubmit={handleSubmit}
               className="flex w-full flex-col gap-4 p-4"
@@ -218,7 +218,7 @@ export const Wallet = () => {
                   {activeMenu === "stake" ||
                   activeMenu === "transfer stake" ||
                   activeMenu === "unstake" ? (
-                    <div className="flex flex-col items-end gap-3 md:flex-row">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                       <p>Validator Adress</p>
                       <Link
                         href="https://www.comstats.org/"
@@ -306,7 +306,7 @@ export const Wallet = () => {
           {transactionStatus.message}
         </p>
       )}
-      <div className="animate-zoom-in my-4 w-full border-b border-gray-400/40" />
+      <div className="my-4 w-full animate-zoom-in border-b border-gray-400/40" />
       <div className="flex w-full flex-col gap-4">
         <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
           <div className="flex items-center gap-2 text-lg">
