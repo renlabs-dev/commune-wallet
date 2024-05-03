@@ -31,6 +31,7 @@ export const Wallet = () => {
 
   const [activeMenu, setActiveMenu] = useState<MenuType>(null);
   const [validator, setValidator] = useState<string>("");
+  const [fromValidator, setFromValidator] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [netUid, setNetUid] = useState<number>(0);
 
@@ -101,7 +102,7 @@ export const Wallet = () => {
     }
     if (activeMenu === "transfer stake") {
       transferStake({
-        fromValidator: selectedAccount.address,
+        fromValidator: fromValidator,
         toValidator: validator,
         amount,
         netUid,
@@ -213,13 +214,30 @@ export const Wallet = () => {
               onSubmit={handleSubmit}
               className="flex w-full flex-col gap-4 p-4"
             >
+              {activeMenu === "transfer stake" && (
+                <div className="w-full">
+                  <p className="text-base">From Validator</p>
+                  <input
+                    type="text"
+                    value={fromValidator}
+                    disabled={transactionStatus.status === "PENDING"}
+                    onChange={(e) => setFromValidator(e.target.value)}
+                    placeholder="The full address of the validator"
+                    className="w-full border bg-black p-2"
+                  />
+                </div>
+              )}
               <div className="w-full">
                 <span className="text-base">
                   {activeMenu === "stake" ||
                   activeMenu === "transfer stake" ||
                   activeMenu === "unstake" ? (
                     <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                      <p>Validator Adress</p>
+                      <p>
+                        {activeMenu === "transfer stake"
+                          ? "To Validator"
+                          : "Validator Adress"}
+                      </p>
                       <Link
                         href="https://www.comstats.org/"
                         target="_blank"
