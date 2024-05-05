@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Icon, Loading } from "..";
-import { copy_to_clipboard, format_token, small_address } from "~/utils";
+import {
+  copy_to_clipboard,
+  format_token,
+  get_balance,
+  small_address,
+} from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
 import { type TransactionStatus } from "~/types";
 import Link from "next/link";
@@ -17,6 +22,7 @@ type MenuType =
 
 export const Wallet = () => {
   const {
+    api,
     stakeData,
     selectedAccount,
 
@@ -47,6 +53,28 @@ export const Wallet = () => {
     validator: string | null;
     value: string | null;
   }>({ validator: null, value: null });
+
+  const [balance, setBalance] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!api || !selectedAccount?.address) {
+        console.error("API or user address is not defined");
+        setIsLoading(false);
+        return;
+      }
+
+      const fetchedBalance = await get_balance({
+        api,
+        address: selectedAccount.address,
+      });
+      setBalance(fetchedBalance);
+      setIsLoading(false);
+    };
+
+    void fetchBalance();
+  }, [api, selectedAccount?.address]);
 
   const handleCallback = (callbackReturn: TransactionStatus) => {
     setTransactionStatus(callbackReturn);
@@ -328,12 +356,12 @@ export const Wallet = () => {
       <div className="flex w-full flex-col gap-4">
         <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
           <div className="flex items-center gap-2 text-lg">
-            <Icon src="/logo-colored.svg" className="h-8 w-8" />{" "}
+            <Icon src="/logo-colored.svg" className="h-8 w-8" />
             <p>Your Balance:</p>
           </div>
           <p>
-            {userStakeWeight !== null ? (
-              <span>{format_token(userStakeWeight)} COMAI</span>
+            {!isLoading ? (
+              <span>{balance} COMAI</span>
             ) : (
               <div className="animate-pulse bg-stone-900 px-3 py-1 text-stone-400">
                 Loading Balance Info
