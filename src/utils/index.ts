@@ -1,4 +1,6 @@
+import "@polkadot/api-augment";
 import { toast } from "react-toastify";
+import { type GetBalance } from "~/types";
 import { type ApiPromise } from "@polkadot/api";
 
 // == Addresses ==
@@ -39,6 +41,14 @@ export function from_nano(nano: number | bigint): number {
 export function format_token(nano: number | bigint): string {
   const amount = from_nano(nano);
   return amount.toFixed(2);
+}
+
+export async function get_balance({ api, address }: GetBalance) {
+  if (!api) throw new Error("API is not defined");
+  const {
+    data: { free: balance },
+  } = await api.query.system.account(address);
+  return balance.toHuman();
 }
 
 // == Queries ==

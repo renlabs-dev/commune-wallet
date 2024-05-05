@@ -1,3 +1,4 @@
+import { ApiPromise } from "@polkadot/api";
 import {
   type InjectedAccountWithMeta,
   type InjectedExtension,
@@ -51,4 +52,9 @@ export interface TransferStake {
   amount: string;
   netUid: number;
   callback?: (status: TransactionStatus) => void;
+}
+
+export interface GetBalance {
+  api: ApiPromise | null;
+  address: string;
 }
