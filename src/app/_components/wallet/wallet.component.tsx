@@ -1,13 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Icon, Loading } from "..";
-import {
-  copy_to_clipboard,
-  format_token,
-  get_balance,
-  small_address,
-} from "~/utils";
+import { copy_to_clipboard, format_token, small_address } from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
 import { type TransactionStatus } from "~/types";
 import Link from "next/link";
@@ -22,9 +17,11 @@ type MenuType =
 
 export const Wallet = () => {
   const {
-    api,
     stakeData,
     selectedAccount,
+
+    balance,
+    isBalanceLoading,
 
     handleConnect,
 
@@ -54,28 +51,6 @@ export const Wallet = () => {
     value: string | null;
   }>({ validator: null, value: null });
 
-  const [balance, setBalance] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchBalance = async () => {
-      if (!api || !selectedAccount?.address) {
-        console.error("API or user address is not defined");
-        setIsLoading(false);
-        return;
-      }
-
-      const fetchedBalance = await get_balance({
-        api,
-        address: selectedAccount.address,
-      });
-      setBalance(fetchedBalance);
-      setIsLoading(false);
-    };
-
-    void fetchBalance();
-  }, [api, selectedAccount?.address]);
-
   const handleCallback = (callbackReturn: TransactionStatus) => {
     setTransactionStatus(callbackReturn);
   };
@@ -103,9 +78,9 @@ export const Wallet = () => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setTransactionStatus({
-      status: null,
+      status: "STARTING",
       finalized: false,
-      message: null,
+      message: "Starting transaction...",
     });
 
     const isValidInput = handleCheckInput();
@@ -346,9 +321,10 @@ export const Wallet = () => {
       )}
       {transactionStatus.status && (
         <p
-          className={` pt-6 ${transactionStatus.status === "PENDING" && "text-yellow-400"}  ${transactionStatus.status === "ERROR" && "text-red-400"} ${transactionStatus.status === "SUCCESS" && "text-green-400"} flex text-left text-base`}
+          className={` pt-6 ${transactionStatus.status === "PENDING" && "text-yellow-400"}  ${transactionStatus.status === "ERROR" && "text-red-400"} ${transactionStatus.status === "SUCCESS" && "text-green-400"} ${transactionStatus.status === "STARTING" && "text-blue-400"} flex text-left text-base`}
         >
-          {transactionStatus.status === "PENDING" && <Loading />}
+          {transactionStatus.status === "PENDING" ||
+            (transactionStatus.status === "STARTING" && <Loading />)}
           {transactionStatus.message}
         </p>
       )}
@@ -360,7 +336,7 @@ export const Wallet = () => {
             <p>Your Balance:</p>
           </div>
           <p>
-            {!isLoading ? (
+            {!isBalanceLoading ? (
               <span>{balance} COMAI</span>
             ) : (
               <div className="animate-pulse bg-stone-900 px-3 py-1 text-stone-400">

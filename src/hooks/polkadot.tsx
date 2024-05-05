@@ -4,7 +4,7 @@
 import { toast } from "react-toastify";
 import { WalletModal } from "~/app/_components";
 
-import { calculate_amount, get_all_stake_out } from "~/utils";
+import { calculate_amount, get_all_stake_out, get_balance } from "~/utils";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ApiPromise, type SubmittableResult, WsProvider } from "@polkadot/api";
@@ -24,6 +24,9 @@ interface PolkadotContextType {
   api: ApiPromise | null;
   isConnected: boolean;
   isInitialized: boolean;
+
+  balance: number;
+  isBalanceLoading: boolean;
 
   accounts: InjectedAccountWithMeta[];
   selectedAccount: InjectedAccountWithMeta | undefined;
@@ -63,6 +66,9 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
   const [selectedAccount, setSelectedAccount] =
     useState<InjectedAccountWithMeta>();
+
+  const [balance, setBalance] = useState(0);
+  const [isBalanceLoading, setIsBalanceLoading] = useState(true);
 
   const [stakeData, setStakeData] = useState<StakeData | null>(null);
   const [blockNumber, setBlockNumber] = useState(0);
@@ -439,12 +445,34 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api]);
 
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!api || !selectedAccount?.address) {
+        console.error("API or user address is not defined");
+        setIsBalanceLoading(false);
+        return;
+      }
+
+      const fetchedBalance = await get_balance({
+        api,
+        address: selectedAccount.address,
+      });
+      setBalance(fetchedBalance);
+      setIsBalanceLoading(false);
+    };
+
+    void fetchBalance();
+  }, [api, selectedAccount?.address]);
+
   return (
     <PolkadotContext.Provider
       value={{
         api,
         isConnected,
         isInitialized,
+
+        balance,
+        isBalanceLoading,
 
         accounts,
         selectedAccount,
