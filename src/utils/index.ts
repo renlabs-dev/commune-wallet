@@ -48,7 +48,10 @@ export async function get_balance({ api, address }: GetBalance) {
   const {
     data: { free: balance },
   } = await api.query.system.account(address);
-  return balance.toHuman();
+
+  const balance_num = Number(balance);
+
+  return from_nano(balance_num);
 }
 
 // == Queries ==
