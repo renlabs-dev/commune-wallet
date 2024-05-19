@@ -372,7 +372,12 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
 
     api.tx.subspaceModule
-      .transferStake(netUid, fromValidator, toValidator, amount)
+      .transferStake(
+        netUid,
+        fromValidator,
+        toValidator,
+        calculate_amount(amount),
+      )
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },

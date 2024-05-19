@@ -90,6 +90,8 @@ export async function get_all_stake_out(api: ApiPromise) {
   const per_net = new Map<number, bigint>();
   // Total stake per address per netuid
   const per_addr_per_net = new Map<number, Map<string, bigint>>();
+  // Total stake per address across all subnets
+  const total_per_addr = new Map<string, bigint>();
 
   for (const stake_to_item of stake_to_query) {
     if (!Array.isArray(stake_to_item) || stake_to_item.length != 2)
@@ -138,14 +140,32 @@ export async function get_all_stake_out(api: ApiPromise) {
       const map_net = per_addr_per_net.get(netuid) ?? new Map<string, bigint>();
       const old_total_addr_net = map_net.get(from_addr) ?? 0n;
       map_net.set(from_addr, old_total_addr_net + staked);
+
+      // Add stake to total_per_addr map
+      const old_total_per_addr = total_per_addr.get(from_addr) ?? 0n;
+      total_per_addr.set(from_addr, old_total_per_addr + staked);
     }
 
     // await do_repl({ api, netuid, from_addr, value_raw }); break
   }
 
+  // Convert total_per_addr map to array of objects
+  const total_per_addr_array = Array.from(total_per_addr.entries()).map(
+    ([validatorAddress, totalStaked]) => ({
+      validatorAddress,
+      totalStaked: totalStaked.toString(),
+    }),
+  );
+
   return {
     block_number,
     block_hash_hex,
-    stake_out: { total, per_addr, per_net, per_addr_per_net },
+    stake_out: {
+      total,
+      per_addr,
+      per_net,
+      per_addr_per_net,
+      total_per_addr: total_per_addr_array,
+    },
   };
 }
