@@ -187,7 +187,7 @@ export const Wallet = () => {
         setOpen={setOpenValidators}
         onSelectValidator={handleSelectValidator}
       />
-      <div className="my-10 flex w-full max-w-screen-lg animate-fade-in-down flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-6">
+      <div className="my-10 flex w-full max-w-screen-lg animate-fade-in-down flex-col items-center justify-center border border-white bg-black/50 p-6">
         <div className="flex w-full flex-col items-center justify-center text-lg text-gray-300">
           <p className="py-2">MAINET</p>
           <div className="flex w-full flex-col gap-4 pb-4 md:flex-row">
@@ -240,7 +240,7 @@ export const Wallet = () => {
                       disabled={transactionStatus.status === "PENDING"}
                       onChange={(e) => setFromValidator(e.target.value)}
                       placeholder="The full address of the validator"
-                      className="w-full border bg-black p-2"
+                      className="w-full border bg-black/50 p-2"
                     />
                   </div>
                 )}
@@ -273,12 +273,12 @@ export const Wallet = () => {
                           ? "The full address of the validator"
                           : "The full address of the recipient"
                       }
-                      className="w-full border bg-black p-2"
+                      className="w-full border bg-black/50 p-2"
                     />
                     <button
                       type="button"
                       onClick={() => setOpenValidators(true)}
-                      className="w-[40%] border bg-black p-2 text-center text-green-500 transition hover:bg-green-500/10 hover:text-white"
+                      className="w-[40%] border bg-black/50 p-2 text-center text-green-500 transition hover:bg-green-500/10 hover:text-white"
                     >
                       List of Validators
                     </button>
@@ -299,7 +299,7 @@ export const Wallet = () => {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="The amount of COMAI to use in the transaction"
-                    className="w-full border bg-black p-2"
+                    className="w-full border bg-black/50 p-2"
                   />
                 </div>
                 {inputError.value && (
@@ -320,7 +320,7 @@ export const Wallet = () => {
                       value={netUid}
                       onChange={(e) => setNetUid(parseInt(e.target.value))}
                       placeholder="The net UID to use in the transaction"
-                      className="w-full border bg-black p-2"
+                      className="w-full border bg-black/50 p-2"
                     />
                   </div>
                 )}
