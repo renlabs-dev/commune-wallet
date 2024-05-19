@@ -357,7 +357,7 @@ export const Wallet = () => {
             </div>
             <p>
               {!isBalanceLoading ? (
-                <span>{balance} COMAI</span>
+                <span>{Math.round(balance)} COMAI</span>
               ) : (
                 <div className="animate-pulse bg-stone-900 px-3 py-1 text-stone-400">
                   Loading Balance Info

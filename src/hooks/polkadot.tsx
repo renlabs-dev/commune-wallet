@@ -177,7 +177,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
           if (result.status.isFinalized) {
             result.events.forEach(({ event }) => {
               if (api.events.system?.ExtrinsicSuccess?.is(event)) {
-                toast.success("Voting successful");
+                toast.success("Transaction successful");
                 callback?.({
                   finalized: true,
                   status: "SUCCESS",
