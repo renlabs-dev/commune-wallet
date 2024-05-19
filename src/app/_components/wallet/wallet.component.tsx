@@ -5,7 +5,7 @@ import { Icon, Loading } from "..";
 import { copy_to_clipboard, format_token, small_address } from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
 import { type TransactionStatus } from "~/types";
-import Link from "next/link";
+import { Validators } from "../validators";
 
 type MenuType =
   | "send"
@@ -19,15 +19,11 @@ export const Wallet = () => {
   const {
     stakeData,
     selectedAccount,
-
     balance,
     isBalanceLoading,
-
     handleConnect,
-
     transfer,
     transferStake,
-
     addStake,
     removeStake,
   } = usePolkadot();
@@ -37,6 +33,7 @@ export const Wallet = () => {
   const [fromValidator, setFromValidator] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [netUid, setNetUid] = useState<number>(0);
+  const [openValidators, setOpenValidators] = useState(false);
 
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
     {
@@ -49,7 +46,10 @@ export const Wallet = () => {
   const [inputError, setInputError] = useState<{
     validator: string | null;
     value: string | null;
-  }>({ validator: null, value: null });
+  }>({
+    validator: null,
+    value: null,
+  });
 
   const handleCallback = (callbackReturn: TransactionStatus) => {
     setTransactionStatus(callbackReturn);
@@ -170,200 +170,219 @@ export const Wallet = () => {
     userStakeWeight = user_stake_entry ?? 0n;
   }
 
+  const handleSelectValidator = (validator: {
+    name: string;
+    description: string;
+    netuid: number;
+    address: string;
+  }) => {
+    setValidator(validator.address);
+    setNetUid(validator.netuid);
+  };
+
   return (
-    <div className="my-10 flex w-fit max-w-screen-md animate-fade-in-down flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-6">
-      <div className="flex w-full flex-col items-center justify-center text-lg text-gray-300">
-        <p className="py-2">MAINET</p>
-
-        <div className="flex w-full flex-col gap-4 pb-4 md:flex-row">
-          <button
-            onClick={handleConnect}
-            className="flex w-full items-center justify-center gap-3 border border-white py-4 transition hover:bg-white/5 md:py-0"
-          >
-            <Icon src="/icons/wallet.svg" className="h-7 w-7" />
-            <p>{small_address(selectedAccount.address)}</p>
-          </button>
-          <button
-            onClick={() => copy_to_clipboard(selectedAccount.address)}
-            className="flex w-full items-center justify-center gap-3 border border-white py-4 transition  hover:bg-white/5 md:w-fit md:px-8 md:py-0"
-          >
-            <span>Copy</span>
-            <Icon src="/icons/copy.svg" className="h-7 w-7 md:h-14 md:w-14" />
-          </button>
-        </div>
-      </div>
-      <div className="mb-4 w-full animate-zoom-in border-b border-gray-400/40" />
-      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-5">
-        {buttons.map((button) => (
-          <IconButton
-            key={button.src}
-            src={button.src}
-            text={button.text}
-            activeMenu={activeMenu}
-            bgColor={button.bgColor}
-            textColor={button.textColor}
-            onClick={() =>
-              button.handleMenuClick(button.text.toLowerCase() as MenuType)
-            }
-          />
-        ))}
-      </div>
-
-      {activeMenu && (
-        <>
-          <div className="mt-4 w-full animate-zoom-in border-b border-gray-400/40" />
-          <div className="mt-4 w-full animate-zoom-in border">
-            <form
-              onSubmit={handleSubmit}
-              className="flex w-full flex-col gap-4 p-4"
+    <>
+      <Validators
+        open={openValidators}
+        setOpen={setOpenValidators}
+        onSelectValidator={handleSelectValidator}
+      />
+      <div className="my-10 flex w-full max-w-screen-lg animate-fade-in-down flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-6">
+        <div className="flex w-full flex-col items-center justify-center text-lg text-gray-300">
+          <p className="py-2">MAINET</p>
+          <div className="flex w-full flex-col gap-4 pb-4 md:flex-row">
+            <button
+              onClick={handleConnect}
+              className="flex w-full items-center justify-center gap-3 border border-white py-4 transition hover:bg-white/5 md:py-0"
             >
-              {activeMenu === "transfer stake" && (
-                <div className="w-full">
-                  <p className="text-base">From Validator</p>
-                  <input
-                    type="text"
-                    value={fromValidator}
-                    disabled={transactionStatus.status === "PENDING"}
-                    onChange={(e) => setFromValidator(e.target.value)}
-                    placeholder="The full address of the validator"
-                    className="w-full border bg-black p-2"
-                  />
-                </div>
-              )}
-              <div className="w-full">
-                <span className="text-base">
-                  {activeMenu === "stake" ||
-                  activeMenu === "transfer stake" ||
-                  activeMenu === "unstake" ? (
-                    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                      <p>
-                        {activeMenu === "transfer stake"
-                          ? "To Validator"
-                          : "Validator Adress"}
-                      </p>
-                    </div>
-                  ) : (
-                    "To Address"
-                  )}
-                </span>
-                <div className="flex flex-row gap-3">
-                  <input
-                    type="text"
-                    value={validator}
-                    disabled={transactionStatus.status === "PENDING"}
-                    onChange={(e) => setValidator(e.target.value)}
-                    placeholder={
-                      activeMenu === "stake" ||
-                      activeMenu === "transfer stake" ||
-                      activeMenu === "unstake"
-                        ? "The full address of the validator"
-                        : "The full address of the recipient"
-                    }
-                    className="w-full border bg-black p-2"
-                  />
-                  <Link
-                    href="https://www.comstats.org/"
-                    target="_blank"
-                    className="w-[40%] border bg-black p-2 text-center text-green-500 transition hover:bg-green-500/10 hover:text-white"
-                  >
-                    List of Validators
-                  </Link>
-                </div>
-              </div>
-              {inputError.validator && (
-                <p
-                  className={`-mt-2 mb-1 flex text-left text-base text-red-400`}
-                >
-                  {inputError.validator}
-                </p>
-              )}
-              <div className="w-full">
-                <p className="text-base">Value</p>
-                <input
-                  type="text"
-                  disabled={transactionStatus.status === "PENDING"}
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="The amount of COMAI to use in the transaction"
-                  className="w-full border bg-black p-2"
-                />
-              </div>
-              {inputError.value && (
-                <p
-                  className={`-mt-2 mb-1 flex text-left text-base text-red-400`}
-                >
-                  {inputError.value}
-                </p>
-              )}
-              {(activeMenu === "stake" ||
-                activeMenu === "unstake" ||
-                activeMenu === "transfer stake") && (
-                <div className="w-full">
-                  <p className="text-base">Net UID</p>
-                  <input
-                    type="number"
-                    disabled={transactionStatus.status === "PENDING"}
-                    value={netUid}
-                    onChange={(e) => setNetUid(parseInt(e.target.value))}
-                    placeholder="The net UID to use in the transaction"
-                    className="w-full border bg-black p-2"
-                  />
-                </div>
-              )}
-              <button
-                type="submit"
-                disabled={transactionStatus.status === "PENDING"}
-                className="border border-white p-2 text-green-500"
-              >
-                Submit
-              </button>
-            </form>
+              <Icon src="/icons/wallet.svg" className="h-7 w-7" />
+              <p>{small_address(selectedAccount.address)}</p>
+            </button>
+            <button
+              onClick={() => copy_to_clipboard(selectedAccount.address)}
+              className="flex w-full items-center justify-center gap-3 border border-white py-4 transition  hover:bg-white/5 md:w-fit md:px-8 md:py-0"
+            >
+              <span>Copy</span>
+              <Icon src="/icons/copy.svg" className="h-7 w-7 md:h-14 md:w-14" />
+            </button>
           </div>
-        </>
-      )}
-      {transactionStatus.status && (
-        <p
-          className={` pt-6 ${transactionStatus.status === "PENDING" && "text-yellow-400"}  ${transactionStatus.status === "ERROR" && "text-red-400"} ${transactionStatus.status === "SUCCESS" && "text-green-400"} ${transactionStatus.status === "STARTING" && "text-blue-400"} flex text-left text-base`}
-        >
-          {transactionStatus.status === "PENDING" ||
-            (transactionStatus.status === "STARTING" && <Loading />)}
-          {transactionStatus.message}
-        </p>
-      )}
-      <div className="my-4 w-full animate-zoom-in border-b border-gray-400/40" />
-      <div className="flex w-full flex-col gap-4">
-        <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
-          <div className="flex items-center gap-2 text-lg">
-            <Icon src="/logo.svg" className="h-8 w-8" />
-            <p>Your Balance:</p>
-          </div>
-          <p>
-            {!isBalanceLoading ? (
-              <span>{balance} COMAI</span>
-            ) : (
-              <div className="animate-pulse bg-stone-900 px-3 py-1 text-stone-400">
-                Loading Balance Info
-              </div>
-            )}
-          </p>
         </div>
-        <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
-          <div className="flex items-center gap-2 text-lg">
-            <Icon src="/logo-green.svg" className="h-8 w-8" />{" "}
-            <p>Total Staked:</p>
-          </div>
-          <p>
-            {userStakeWeight !== null ? (
-              <span>{format_token(userStakeWeight)} COMAI</span>
-            ) : (
-              <div className="animate-pulse bg-stone-900 px-3 py-1 text-stone-400">
-                Loading Balance Info
-              </div>
-            )}
+        <div className="mb-4 w-full animate-zoom-in border-b border-gray-400/40" />
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-5">
+          {buttons.map((button) => (
+            <IconButton
+              key={button.src}
+              src={button.src}
+              text={button.text}
+              activeMenu={activeMenu}
+              bgColor={button.bgColor}
+              textColor={button.textColor}
+              onClick={() =>
+                button.handleMenuClick(button.text.toLowerCase() as MenuType)
+              }
+            />
+          ))}
+        </div>
+        {activeMenu && (
+          <>
+            <div className="mt-4 w-full animate-zoom-in border-b border-gray-400/40" />
+            <div className="mt-4 w-full animate-zoom-in border">
+              <form
+                onSubmit={handleSubmit}
+                className="flex w-full flex-col gap-4 p-4"
+              >
+                {activeMenu === "transfer stake" && (
+                  <div className="w-full">
+                    <p className="text-base">From Validator</p>
+                    <input
+                      type="text"
+                      value={fromValidator}
+                      disabled={transactionStatus.status === "PENDING"}
+                      onChange={(e) => setFromValidator(e.target.value)}
+                      placeholder="The full address of the validator"
+                      className="w-full border bg-black p-2"
+                    />
+                  </div>
+                )}
+                <div className="w-full">
+                  <span className="text-base">
+                    {activeMenu === "stake" ||
+                    activeMenu === "transfer stake" ||
+                    activeMenu === "unstake" ? (
+                      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <p>
+                          {activeMenu === "transfer stake"
+                            ? "To Validator"
+                            : "Validator Address"}
+                        </p>
+                      </div>
+                    ) : (
+                      "To Address"
+                    )}
+                  </span>
+                  <div className="flex flex-row gap-3">
+                    <input
+                      type="text"
+                      value={validator}
+                      disabled={transactionStatus.status === "PENDING"}
+                      onChange={(e) => setValidator(e.target.value)}
+                      placeholder={
+                        activeMenu === "stake" ||
+                        activeMenu === "transfer stake" ||
+                        activeMenu === "unstake"
+                          ? "The full address of the validator"
+                          : "The full address of the recipient"
+                      }
+                      className="w-full border bg-black p-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setOpenValidators(true)}
+                      className="w-[40%] border bg-black p-2 text-center text-green-500 transition hover:bg-green-500/10 hover:text-white"
+                    >
+                      List of Validators
+                    </button>
+                  </div>
+                </div>
+                {inputError.validator && (
+                  <p
+                    className={`-mt-2 mb-1 flex text-left text-base text-red-400`}
+                  >
+                    {inputError.validator}
+                  </p>
+                )}
+                <div className="w-full">
+                  <p className="text-base">Value</p>
+                  <input
+                    type="text"
+                    disabled={transactionStatus.status === "PENDING"}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="The amount of COMAI to use in the transaction"
+                    className="w-full border bg-black p-2"
+                  />
+                </div>
+                {inputError.value && (
+                  <p
+                    className={`-mt-2 mb-1 flex text-left text-base text-red-400`}
+                  >
+                    {inputError.value}
+                  </p>
+                )}
+                {(activeMenu === "stake" ||
+                  activeMenu === "unstake" ||
+                  activeMenu === "transfer stake") && (
+                  <div className="w-full">
+                    <p className="text-base">Net UID</p>
+                    <input
+                      type="number"
+                      disabled={transactionStatus.status === "PENDING"}
+                      value={netUid}
+                      onChange={(e) => setNetUid(parseInt(e.target.value))}
+                      placeholder="The net UID to use in the transaction"
+                      className="w-full border bg-black p-2"
+                    />
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={transactionStatus.status === "PENDING"}
+                  className="border border-white p-2 text-green-500 transition hover:bg-green-500/10 hover:text-white"
+                >
+                  Submit
+                </button>
+              </form>
+            </div>
+          </>
+        )}
+        {transactionStatus.status && (
+          <p
+            className={`pt-6 ${
+              transactionStatus.status === "PENDING" && "text-yellow-400"
+            }  ${transactionStatus.status === "ERROR" && "text-red-400"} ${
+              transactionStatus.status === "SUCCESS" && "text-green-400"
+            } ${transactionStatus.status === "STARTING" && "text-blue-400"} flex text-left text-base`}
+          >
+            {(transactionStatus.status === "PENDING" ||
+              transactionStatus.status === "STARTING") && <Loading />}
+            {transactionStatus.message}
           </p>
+        )}
+        <div className="my-4 w-full animate-zoom-in border-b border-gray-400/40" />
+        <div className="flex w-full flex-col gap-4">
+          <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
+            <div className="flex items-center gap-2 text-lg">
+              <Icon src="/logo.svg" className="h-8 w-8" />
+              <p>Your Balance:</p>
+            </div>
+            <p>
+              {!isBalanceLoading ? (
+                <span>{balance} COMAI</span>
+              ) : (
+                <div className="animate-pulse bg-stone-900 px-3 py-1 text-stone-400">
+                  Loading Balance Info
+                </div>
+              )}
+            </p>
+          </div>
+          <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
+            <div className="flex items-center gap-2 text-lg">
+              <Icon src="/logo-green.svg" className="h-8 w-8" />{" "}
+              <p>Total Staked:</p>
+            </div>
+            <p>
+              {userStakeWeight !== null ? (
+                <span>{format_token(userStakeWeight)} COMAI</span>
+              ) : (
+                <div className="animate-pulse bg-stone-900 px-3 py-1 text-stone-400">
+                  Loading Balance Info
+                </div>
+              )}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -385,9 +404,11 @@ const IconButton = ({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-row items-center justify-center gap-1 border border-white p-3 text-lg md:flex-col ${textColor} transition hover:bg-white/5 ${activeMenu === text.toLowerCase() ? bgColor : ""}`}
+      className={`flex flex-row items-center justify-center gap-1 border border-white p-3 text-lg md:flex-col ${textColor} transition hover:bg-white/5 ${
+        activeMenu === text.toLowerCase() ? bgColor : ""
+      }`}
     >
-      <Icon src={src} className="h-5 w-5 md:h-10 md:w-10" />
+      <Icon src={src} className="h-5 w-5 md:h-14 md:w-10" />
       <span>{text}</span>
     </button>
   );
