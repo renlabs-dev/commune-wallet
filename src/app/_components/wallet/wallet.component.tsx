@@ -173,7 +173,7 @@ export const Wallet = () => {
   return (
     <div className="my-10 flex w-fit max-w-screen-md animate-fade-in-down flex-col items-center justify-center border border-white bg-black bg-opacity-50 p-6">
       <div className="flex w-full flex-col items-center justify-center text-lg text-gray-300">
-        <p className="py-2">MAIN NET</p>
+        <p className="py-2">MAINET</p>
 
         <div className="flex w-full flex-col gap-4 pb-4 md:flex-row">
           <button
@@ -241,32 +241,34 @@ export const Wallet = () => {
                           ? "To Validator"
                           : "Validator Adress"}
                       </p>
-                      <Link
-                        href="https://www.comstats.org/"
-                        target="_blank"
-                        className="text-sm text-blue-500 hover:underline"
-                      >
-                        View a list of validators here
-                      </Link>
                     </div>
                   ) : (
                     "To Address"
                   )}
                 </span>
-                <input
-                  type="text"
-                  value={validator}
-                  disabled={transactionStatus.status === "PENDING"}
-                  onChange={(e) => setValidator(e.target.value)}
-                  placeholder={
-                    activeMenu === "stake" ||
-                    activeMenu === "transfer stake" ||
-                    activeMenu === "unstake"
-                      ? "The full address of the validator"
-                      : "The full address of the recipient"
-                  }
-                  className="w-full border bg-black p-2"
-                />
+                <div className="flex flex-row gap-3">
+                  <input
+                    type="text"
+                    value={validator}
+                    disabled={transactionStatus.status === "PENDING"}
+                    onChange={(e) => setValidator(e.target.value)}
+                    placeholder={
+                      activeMenu === "stake" ||
+                      activeMenu === "transfer stake" ||
+                      activeMenu === "unstake"
+                        ? "The full address of the validator"
+                        : "The full address of the recipient"
+                    }
+                    className="w-full border bg-black p-2"
+                  />
+                  <Link
+                    href="https://www.comstats.org/"
+                    target="_blank"
+                    className="w-[40%] border bg-black p-2 text-center text-green-500 transition hover:bg-green-500/10 hover:text-white"
+                  >
+                    List of Validators
+                  </Link>
+                </div>
               </div>
               {inputError.validator && (
                 <p
@@ -332,7 +334,7 @@ export const Wallet = () => {
       <div className="flex w-full flex-col gap-4">
         <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
           <div className="flex items-center gap-2 text-lg">
-            <Icon src="/logo-colored.svg" className="h-8 w-8" />
+            <Icon src="/logo.svg" className="h-8 w-8" />
             <p>Your Balance:</p>
           </div>
           <p>
@@ -347,7 +349,8 @@ export const Wallet = () => {
         </div>
         <div className="flex w-full items-center justify-between gap-3 border border-white p-3">
           <div className="flex items-center gap-2 text-lg">
-            <Icon src="/logo.svg" className="h-8 w-8" /> <p>Total Staked:</p>
+            <Icon src="/logo-green.svg" className="h-8 w-8" />{" "}
+            <p>Total Staked:</p>
           </div>
           <p>
             {userStakeWeight !== null ? (

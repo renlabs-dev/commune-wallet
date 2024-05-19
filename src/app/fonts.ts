@@ -1,4 +1,4 @@
-import { Inter, Cairo } from "next/font/google";
+import { Inter, Cairo, Oxanium } from "next/font/google";
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -8,4 +8,10 @@ export const inter = Inter({
 export const cairo = Cairo({
   subsets: ["latin"],
   display: "swap",
+});
+
+export const oxanium = Oxanium({
+  subsets: ["latin"],
+  display: "swap",
+  weight: "300",
 });

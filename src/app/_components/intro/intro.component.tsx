@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { usePolkadot } from "~/hooks/polkadot";
 import { Icon } from "../icon";
+import { oxanium } from "~/app/fonts";
 
 export const Intro = () => {
   const { handleConnect } = usePolkadot();
@@ -17,7 +18,7 @@ export const Intro = () => {
           priority
           className="mr-[3px]"
         />
-        <span className={`ml-2 text-2xl`}>Commune Wallet</span>
+        <h2 className={`${oxanium.className} ml-2 text-2xl`}>Commune Wallet</h2>
       </div>
 
       <p className="py-6 text-lg text-gray-300">
