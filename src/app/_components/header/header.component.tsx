@@ -4,7 +4,7 @@ import { oxanium } from "~/app/fonts";
 
 export const Header = () => {
   return (
-    <header className="flex w-full flex-row items-center justify-between border-b border-white bg-black bg-opacity-50 p-5 px-12 text-gray-300">
+    <header className="flex w-full flex-row items-center justify-between border-b border-white bg-black/50 p-5 px-12 text-gray-300">
       <Link
         href={"/"}
         className="flex items-center gap-2 text-2xl font-light text-white"

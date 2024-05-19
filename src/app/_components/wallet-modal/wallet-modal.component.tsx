@@ -34,7 +34,7 @@ export const WalletModal = ({
       {/* Modal */}
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4 text-center">
-          <div className="relative w-[100%] max-w-3xl transform overflow-hidden border bg-black/35 text-left text-white">
+          <div className="relative w-[100%] max-w-3xl transform overflow-hidden border bg-black/50 text-left text-white">
             {/* Modal Header */}
             <div className="flex flex-col items-center justify-between gap-3 border-b p-6 md:flex-row">
               <div className="flex flex-col items-center md:flex-row">

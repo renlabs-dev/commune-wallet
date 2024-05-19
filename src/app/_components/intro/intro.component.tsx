@@ -8,7 +8,7 @@ import { oxanium } from "~/app/fonts";
 export const Intro = () => {
   const { handleConnect } = usePolkadot();
   return (
-    <div className="flex w-full max-w-screen-md animate-fade-in-down flex-col items-center justify-center divide-y divide-gray-400/40 border border-white bg-black bg-opacity-50 p-8">
+    <div className="flex w-full max-w-screen-md animate-fade-in-down flex-col items-center justify-center divide-y divide-gray-400/40 border border-white bg-black/50 p-8">
       <div className="col-span-1 flex items-center pb-6">
         <Image
           src="/logo.svg"
