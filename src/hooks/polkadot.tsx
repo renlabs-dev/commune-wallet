@@ -40,6 +40,7 @@ interface PolkadotContextType {
   blockNumber: number;
   stakeData: StakeData | null;
   userTotalStake: UserStakeData | null;
+  isUserTotalStakeLoading: boolean;
 
   handleConnect: () => void;
 
@@ -82,6 +83,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
   const [userTotalStake, setUserTotalStake] = useState<UserStakeData | null>(
     null,
   );
+  const [isUserTotalStakeLoading, setIsUserTotalStakeLoading] = useState(true);
 
   async function loadPolkadotApi() {
     const { web3Accounts, web3Enable, web3FromAddress } = await import(
@@ -457,6 +459,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
             void get_user_total_stake(api, selectedAccount.address).then(
               (user_total_stake) => {
                 setUserTotalStake(user_total_stake);
+                setIsUserTotalStakeLoading(false);
               },
             );
           }
@@ -503,6 +506,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
         blockNumber,
         stakeData,
         userTotalStake,
+        isUserTotalStakeLoading,
 
         handleConnect,
 

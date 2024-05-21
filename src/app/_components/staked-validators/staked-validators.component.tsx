@@ -30,7 +30,7 @@ export const StakedValidators = ({
   setOpen: (args: boolean) => void;
   onSelectValidator: (validator: Validator) => void;
 }) => {
-  const { userTotalStake } = usePolkadot();
+  const { userTotalStake, isUserTotalStakeLoading } = usePolkadot();
 
   return (
     <div
@@ -70,36 +70,41 @@ export const StakedValidators = ({
                   View all
                 </Link>
               </div>
-
-              {userTotalStake ? (
-                userTotalStake.stakes.map((stake) => (
-                  <button
-                    key={stake.address}
-                    onClick={() => {
-                      onSelectValidator({
-                        description: `Stake Amount: ${from_nano(BigInt(stake.amount))} COMAI`,
-                        netuid: stake.netuid,
-                        address: stake.address,
-                      });
-                      setOpen(false);
-                    }}
-                    className={`text-md flex cursor-pointer items-center gap-x-3 overflow-auto border p-5 transition hover:bg-green-500/10`}
-                  >
-                    <div className="flex w-full flex-col items-start gap-1">
-                      <span className="font-semibold">
-                        Address: {small_address(stake.address)}
-                      </span>
-                      <div className="flex w-full flex-col items-start justify-between md:flex-row">
-                        <span>NetUID: {stake.netuid}</span>
-                        <span className="text-gray-400">
-                          Stake Amount: {stake.amount}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                ))
+              {isUserTotalStakeLoading ? (
+                <p className="animate-pulse">Loading...</p>
               ) : (
-                <p>No stake data available for the user.</p>
+                <>
+                  {userTotalStake ? (
+                    userTotalStake.stakes.map((stake) => (
+                      <button
+                        key={stake.address}
+                        onClick={() => {
+                          onSelectValidator({
+                            description: `Stake Amount: ${from_nano(BigInt(stake.amount))} COMAI`,
+                            netuid: stake.netuid,
+                            address: stake.address,
+                          });
+                          setOpen(false);
+                        }}
+                        className={`text-md flex cursor-pointer items-center gap-x-3 overflow-auto border p-5 transition hover:bg-green-500/10`}
+                      >
+                        <div className="flex w-full flex-col items-start gap-1">
+                          <span className="font-semibold">
+                            Address: {small_address(stake.address)}
+                          </span>
+                          <div className="flex w-full flex-col items-start justify-between md:flex-row">
+                            <span>NetUID: {stake.netuid}</span>
+                            <span className="text-gray-400">
+                              Stake Amount: {stake.amount}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <p>No stake data available for the user.</p>
+                  )}
+                </>
               )}
             </div>
           </div>

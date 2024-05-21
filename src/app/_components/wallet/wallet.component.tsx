@@ -282,19 +282,30 @@ export const Wallet = () => {
                       }
                       className="w-full border bg-black/50 p-2"
                     />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        activeMenu === "unstake"
-                          ? setOpenStakedValidators(true)
-                          : setOpenValidators(true)
-                      }
-                      className="w-[40%] border bg-black/50 p-2 text-center text-green-500 transition hover:bg-green-500/10 hover:text-white"
-                    >
-                      {activeMenu === "unstake"
-                        ? "List of Staked Validators"
-                        : "Validators"}
-                    </button>
+                    {activeMenu !== "send" && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          activeMenu === "unstake"
+                            ? setOpenStakedValidators(true)
+                            : setOpenValidators(true)
+                        }
+                        className="w-[40%] border bg-black/50 p-2 text-center text-green-500 transition hover:bg-green-500/10 hover:text-white"
+                      >
+                        {activeMenu === "unstake"
+                          ? "List of Staked Validators"
+                          : "Validators"}
+                      </button>
+                    )}
+                    {activeMenu === "transfer stake" && (
+                      <button
+                        type="button"
+                        onClick={() => setOpenStakedValidators(true)}
+                        className="w-[40%] border bg-black/50 p-2 text-center text-green-500 transition hover:bg-green-500/10 hover:text-white"
+                      >
+                        List of Staked Validators
+                      </button>
+                    )}
                   </div>
                 </div>
                 {inputError.validator && (

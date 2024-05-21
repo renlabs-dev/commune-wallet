@@ -173,72 +173,63 @@ export async function get_all_stake_out(api: ApiPromise) {
 export async function get_user_total_stake(
   api: ApiPromise,
   address: string,
-): Promise<UserStakeData> {
+): Promise<UserStakeData | null> {
   const { api_at_block, block_number, block_hash_hex } =
     await use_last_block(api);
   console.debug(
     `Querying StakeTo for user ${address} at block ${block_number}`,
   );
 
+  if (!api_at_block.query.subspaceModule?.stakeTo) return null;
+
   const stake_to_query =
     await api_at_block.query.subspaceModule?.stakeTo?.entries();
-  if (stake_to_query == null) {
+  if (stake_to_query == null)
     throw new Error("Query to stakeTo returned nullish");
-  }
 
   let totalStake = 0n;
   const stakes = [];
 
   for (const stake_to_item of stake_to_query) {
-    if (!Array.isArray(stake_to_item) || stake_to_item.length != 2) {
+    if (!Array.isArray(stake_to_item) || stake_to_item.length != 2)
       throw new Error(`Invalid stakeTo item '${stake_to_item.toString()}'`);
-    }
     const [key_raw, value_raw] = stake_to_item;
 
     const [netuid_raw, from_addr_raw] = key_raw.args;
-    if (netuid_raw == null || from_addr_raw == null) {
+    if (netuid_raw == null || from_addr_raw == null)
       throw new Error("stakeTo storage key is nullish");
-    }
 
     const netuid = netuid_raw.toPrimitive();
     const from_addr = from_addr_raw.toHuman();
     const stake_to_map_for_key = value_raw.toPrimitive();
 
-    if (typeof netuid !== "number") {
+    if (typeof netuid !== "number")
       throw new Error("Invalid stakeTo storage key (netuid)");
-    }
-    if (typeof from_addr !== "string") {
+    if (typeof from_addr !== "string")
       throw new Error("Invalid stakeTo storage key (from_addr)");
-    }
-    if (typeof stake_to_map_for_key !== "object") {
+    if (typeof stake_to_map_for_key !== "object")
       throw new Error("Invalid stakeTo storage value");
-    }
-    if (Array.isArray(stake_to_map_for_key)) {
+    if (Array.isArray(stake_to_map_for_key))
       throw new Error("Invalid stakeTo storage value, it's an array");
-    }
 
     if (from_addr === address) {
-      let netuidTotalStake = 0n;
-
       for (const module_key in stake_to_map_for_key) {
         const staked_ = stake_to_map_for_key[module_key];
 
-        if (typeof staked_ !== "number" && typeof staked_ !== "string") {
+        if (typeof staked_ !== "number" && typeof staked_ !== "string")
           throw new Error(
             "Invalid stakeTo storage value item, it's not a number or string",
           );
-        }
         const staked = BigInt(staked_);
 
         totalStake += staked;
-        netuidTotalStake += staked;
-      }
 
-      stakes.push({
-        address: address,
-        netuid,
-        amount: netuidTotalStake.toString(),
-      });
+        stakes.push({
+          address: from_addr,
+          netuid,
+          amount: staked.toString(),
+        });
+      }
     }
   }
 
