@@ -1,4 +1,4 @@
-import { ApiPromise } from "@polkadot/api";
+import { type ApiPromise } from "@polkadot/api";
 import {
   type InjectedAccountWithMeta,
   type InjectedExtension,
@@ -13,6 +13,17 @@ export interface StakeData {
     per_net: Map<number, bigint>;
     per_addr_per_net: Map<number, Map<string, bigint>>;
   };
+}
+
+export interface UserStakeData {
+  block_number: number;
+  block_hash_hex: string;
+  total_stake: string;
+  stakes: {
+    address: string;
+    netuid: number;
+    amount: string;
+  }[];
 }
 
 export interface PolkadotProviderProps {

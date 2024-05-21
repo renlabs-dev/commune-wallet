@@ -6,6 +6,7 @@ import { copy_to_clipboard, format_token, small_address } from "~/utils";
 import { usePolkadot } from "~/hooks/polkadot";
 import { type TransactionStatus } from "~/types";
 import { Validators } from "../validators";
+import { StakedValidators } from "../staked-validators";
 
 type MenuType =
   | "send"
@@ -34,6 +35,7 @@ export const Wallet = () => {
   const [amount, setAmount] = useState<string>("");
   const [netUid, setNetUid] = useState<number>(0);
   const [openValidators, setOpenValidators] = useState(false);
+  const [openStakedValidators, setOpenStakedValidators] = useState(false);
 
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
     {
@@ -171,7 +173,7 @@ export const Wallet = () => {
   }
 
   const handleSelectValidator = (validator: {
-    name: string;
+    name?: string;
     description: string;
     netuid: number;
     address: string;
@@ -185,6 +187,11 @@ export const Wallet = () => {
       <Validators
         open={openValidators}
         setOpen={setOpenValidators}
+        onSelectValidator={handleSelectValidator}
+      />
+      <StakedValidators
+        open={openStakedValidators}
+        setOpen={setOpenStakedValidators}
         onSelectValidator={handleSelectValidator}
       />
       <div className="my-10 flex w-full max-w-screen-lg animate-fade-in-down flex-col items-center justify-center border border-white bg-black/50 p-6">
@@ -277,10 +284,16 @@ export const Wallet = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => setOpenValidators(true)}
+                      onClick={() =>
+                        activeMenu === "unstake"
+                          ? setOpenStakedValidators(true)
+                          : setOpenValidators(true)
+                      }
                       className="w-[40%] border bg-black/50 p-2 text-center text-green-500 transition hover:bg-green-500/10 hover:text-white"
                     >
-                      List of Validators
+                      {activeMenu === "unstake"
+                        ? "List of Staked Validators"
+                        : "Validators"}
                     </button>
                   </div>
                 </div>

@@ -4,7 +4,12 @@
 import { toast } from "react-toastify";
 import { WalletModal } from "~/app/_components";
 
-import { calculate_amount, get_all_stake_out, get_balance } from "~/utils";
+import {
+  calculate_amount,
+  get_all_stake_out,
+  get_balance,
+  get_user_total_stake,
+} from "~/utils";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ApiPromise, type SubmittableResult, WsProvider } from "@polkadot/api";
@@ -16,6 +21,7 @@ import {
   type TransferStake,
   type PolkadotApiState,
   type PolkadotProviderProps,
+  type UserStakeData,
 } from "~/types";
 import { type DispatchError } from "@polkadot/types/interfaces";
 import { type InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
@@ -33,6 +39,7 @@ interface PolkadotContextType {
 
   blockNumber: number;
   stakeData: StakeData | null;
+  userTotalStake: UserStakeData | null;
 
   handleConnect: () => void;
 
@@ -72,6 +79,9 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
 
   const [stakeData, setStakeData] = useState<StakeData | null>(null);
   const [blockNumber, setBlockNumber] = useState(0);
+  const [userTotalStake, setUserTotalStake] = useState<UserStakeData | null>(
+    null,
+  );
 
   async function loadPolkadotApi() {
     const { web3Accounts, web3Enable, web3FromAddress } = await import(
@@ -442,6 +452,14 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       get_all_stake_out(api)
         .then((stake_data_result) => {
           setStakeData(stake_data_result);
+
+          if (selectedAccount?.address) {
+            void get_user_total_stake(api, selectedAccount.address).then(
+              (user_total_stake) => {
+                setUserTotalStake(user_total_stake);
+              },
+            );
+          }
         })
         .catch((e) => {
           toast.error(`Error fetching stake out map", ${e}`);
@@ -484,6 +502,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
 
         blockNumber,
         stakeData,
+        userTotalStake,
 
         handleConnect,
 
