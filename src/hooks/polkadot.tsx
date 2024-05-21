@@ -21,7 +21,6 @@ import {
   type TransferStake,
   type PolkadotApiState,
   type PolkadotProviderProps,
-  type UserStakeData,
 } from "~/types";
 import { type DispatchError } from "@polkadot/types/interfaces";
 import { type InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
@@ -39,7 +38,7 @@ interface PolkadotContextType {
 
   blockNumber: number;
   stakeData: StakeData | null;
-  userTotalStake: UserStakeData | null;
+  userTotalStake: { address: string; stake: string; netuid: number }[];
   isUserTotalStakeLoading: boolean;
 
   handleConnect: () => void;
@@ -80,9 +79,9 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
 
   const [stakeData, setStakeData] = useState<StakeData | null>(null);
   const [blockNumber, setBlockNumber] = useState(0);
-  const [userTotalStake, setUserTotalStake] = useState<UserStakeData | null>(
-    null,
-  );
+  const [userTotalStake, setUserTotalStake] = useState<
+    { address: string; stake: string; netuid: number }[]
+  >([]);
   const [isUserTotalStakeLoading, setIsUserTotalStakeLoading] = useState(true);
 
   async function loadPolkadotApi() {

@@ -1,6 +1,6 @@
 import "@polkadot/api-augment";
 import { toast } from "react-toastify";
-import { type UserStakeData, type GetBalance } from "~/types";
+import { type GetBalance } from "~/types";
 import { type ApiPromise } from "@polkadot/api";
 
 // == Addresses ==
@@ -173,70 +173,39 @@ export async function get_all_stake_out(api: ApiPromise) {
 export async function get_user_total_stake(
   api: ApiPromise,
   address: string,
-): Promise<UserStakeData | null> {
-  const { api_at_block, block_number, block_hash_hex } =
-    await use_last_block(api);
-  console.debug(
-    `Querying StakeTo for user ${address} at block ${block_number}`,
-  );
+): Promise<{ address: string; stake: string; netuid: number }[]> {
+  const { api_at_block } = await use_last_block(api);
+  const N_query = await api_at_block.query.subspaceModule?.n?.entries();
 
-  if (!api_at_block.query.subspaceModule?.stakeTo) return null;
+  if (!N_query) throw new Error("Query to n returned nullish");
 
-  const stake_to_query =
-    await api_at_block.query.subspaceModule?.stakeTo?.entries();
-  if (stake_to_query == null)
-    throw new Error("Query to stakeTo returned nullish");
+  const stakePromises = N_query.map(async ([netuid_raw, _]) => {
+    const netuid = parseInt(netuid_raw.toHuman() as string, 10);
 
-  let totalStake = 0n;
-  const stakes = [];
+    if (!api_at_block.query.subspaceModule?.stakeTo) return null;
 
-  for (const stake_to_item of stake_to_query) {
-    if (!Array.isArray(stake_to_item) || stake_to_item.length != 2)
-      throw new Error(`Invalid stakeTo item '${stake_to_item.toString()}'`);
-    const [key_raw, value_raw] = stake_to_item;
+    const stake = await api_at_block.query.subspaceModule.stakeTo(
+      netuid,
+      address,
+    );
 
-    const [netuid_raw, from_addr_raw] = key_raw.args;
-    if (netuid_raw == null || from_addr_raw == null)
-      throw new Error("stakeTo storage key is nullish");
+    const stakeHuman = stake.toHuman();
 
-    const netuid = netuid_raw.toPrimitive();
-    const from_addr = from_addr_raw.toHuman();
-    const stake_to_map_for_key = value_raw.toPrimitive();
+    if (!stakeHuman) return null;
 
-    if (typeof netuid !== "number")
-      throw new Error("Invalid stakeTo storage key (netuid)");
-    if (typeof from_addr !== "string")
-      throw new Error("Invalid stakeTo storage key (from_addr)");
-    if (typeof stake_to_map_for_key !== "object")
-      throw new Error("Invalid stakeTo storage value");
-    if (Array.isArray(stake_to_map_for_key))
-      throw new Error("Invalid stakeTo storage value, it's an array");
+    return {
+      address,
+      stake: stakeHuman,
+      netuid,
+    };
+  });
 
-    if (from_addr === address) {
-      for (const module_key in stake_to_map_for_key) {
-        const staked_ = stake_to_map_for_key[module_key];
+  const stakes = await Promise.all(stakePromises);
 
-        if (typeof staked_ !== "number" && typeof staked_ !== "string")
-          throw new Error(
-            "Invalid stakeTo storage value item, it's not a number or string",
-          );
-        const staked = BigInt(staked_);
-
-        totalStake += staked;
-
-        stakes.push({
-          address: from_addr,
-          netuid,
-          amount: staked.toString(),
-        });
-      }
-    }
-  }
-
-  return {
-    block_number,
-    block_hash_hex,
-    total_stake: totalStake.toString(),
-    stakes,
-  };
+  // Filter out any null results
+  return stakes.filter((stake) => stake !== null) as {
+    address: string;
+    stake: string;
+    netuid: number;
+  }[];
 }
