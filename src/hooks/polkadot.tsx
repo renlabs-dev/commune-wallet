@@ -39,7 +39,6 @@ interface PolkadotContextType {
   blockNumber: number;
   stakeData: StakeData | null;
   userTotalStake: { address: string; stake: string; netuid: number }[];
-  isUserTotalStakeLoading: boolean;
 
   handleConnect: () => void;
 
@@ -82,7 +81,6 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
   const [userTotalStake, setUserTotalStake] = useState<
     { address: string; stake: string; netuid: number }[]
   >([]);
-  const [isUserTotalStakeLoading, setIsUserTotalStakeLoading] = useState(true);
 
   async function loadPolkadotApi() {
     const { web3Accounts, web3Enable, web3FromAddress } = await import(
@@ -445,6 +443,16 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
   }
 
   useEffect(() => {
+    if (api && selectedAccount?.address) {
+      void get_user_total_stake(api, selectedAccount.address).then(
+        (user_total_stake) => {
+          setUserTotalStake(user_total_stake);
+        },
+      );
+    }
+  }, [api, selectedAccount?.address]);
+
+  useEffect(() => {
     if (api) {
       void api.rpc.chain.subscribeNewHeads((header) => {
         setBlockNumber(header.number.toNumber());
@@ -453,15 +461,6 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       get_all_stake_out(api)
         .then((stake_data_result) => {
           setStakeData(stake_data_result);
-
-          if (selectedAccount?.address) {
-            void get_user_total_stake(api, selectedAccount.address).then(
-              (user_total_stake) => {
-                setUserTotalStake(user_total_stake);
-                setIsUserTotalStakeLoading(false);
-              },
-            );
-          }
         })
         .catch((e) => {
           toast.error(`Error fetching stake out map", ${e}`);
@@ -505,7 +504,6 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
         blockNumber,
         stakeData,
         userTotalStake,
-        isUserTotalStakeLoading,
 
         handleConnect,
 
