@@ -10,15 +10,19 @@ interface Validator {
   address: string;
 }
 
+export type Stake = Record<string, string>;
+
+export interface UserStake {
+  address: string;
+  netuid: number;
+  stake: Stake;
+}
+
 export interface UserStakeData {
   block_number: number;
   block_hash_hex: string;
   total_stake: string;
-  stakes: {
-    address: string;
-    netuid: number;
-    amount: string;
-  }[];
+  stakes: UserStake[];
 }
 
 export const StakedValidators = ({
@@ -35,9 +39,7 @@ export const StakedValidators = ({
   return (
     <div
       role="dialog"
-      className={`fixed inset-0 z-[100] ${
-        open ? "block" : "hidden"
-      } animate-fade-in-down`}
+      className={`fixed inset-0 z-[100] ${open ? "block" : "hidden"} animate-fade-in-down`}
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-[url(/bg-pattern.svg)]" />
@@ -75,32 +77,34 @@ export const StakedValidators = ({
               ) : (
                 <>
                   {userTotalStake ? (
-                    userTotalStake.stakes.map((stake) => (
-                      <button
-                        key={stake.address}
-                        onClick={() => {
-                          onSelectValidator({
-                            description: `Stake Amount: ${from_nano(BigInt(stake.amount))} COMAI`,
-                            netuid: stake.netuid,
-                            address: stake.address,
-                          });
-                          setOpen(false);
-                        }}
-                        className={`text-md flex cursor-pointer items-center gap-x-3 overflow-auto border p-5 transition hover:bg-green-500/10`}
-                      >
-                        <div className="flex w-full flex-col items-start gap-1">
-                          <span className="font-semibold">
-                            Address: {small_address(stake.address)}
-                          </span>
-                          <div className="flex w-full flex-col items-start justify-between md:flex-row">
-                            <span>NetUID: {stake.netuid}</span>
-                            <span className="text-gray-400">
-                              Stake Amount: {stake.amount}
+                    userTotalStake.flatMap((stake) =>
+                      Object.entries(stake.stake).map(([address, amount]) => (
+                        <button
+                          key={`${stake.netuid}-${address}`}
+                          onClick={() => {
+                            onSelectValidator({
+                              description: `Stake Amount: ${Math.round(from_nano(Number(amount)))} COMAI`,
+                              netuid: stake.netuid,
+                              address,
+                            });
+                            setOpen(false);
+                          }}
+                          className={`text-md flex cursor-pointer items-center gap-x-3 overflow-auto border p-5 transition hover:bg-green-500/10`}
+                        >
+                          <div className="flex w-full flex-col items-start gap-1">
+                            <span className="font-semibold">
+                              Address: {small_address(address)}
                             </span>
+                            <div className="flex w-full flex-col items-start justify-between md:flex-row">
+                              <span>NetUID: {stake.netuid}</span>
+                              <span className="text-gray-400">
+                                Stake Amount: {amount}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </button>
-                    ))
+                        </button>
+                      )),
+                    )
                   ) : (
                     <p>No stake data available for the user.</p>
                   )}

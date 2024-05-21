@@ -15,6 +15,12 @@ export interface StakeData {
   };
 }
 
+export interface UserStake {
+  adddress: string;
+  stake: string;
+  netuid: number;
+}
+
 export interface UserStakeData {
   block_number: number;
   block_hash_hex: string;
