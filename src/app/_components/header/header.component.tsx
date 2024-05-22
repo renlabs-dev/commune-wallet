@@ -16,7 +16,7 @@ export const Header = () => {
           className="ml-2 h-10 w-10"
           alt="Telegram icon"
         />
-        <p className={`${oxanium.className} ml-1`}>Wallet</p>
+        <p className={`${oxanium.className} ml-1`}>Commune AI Wallet</p>
       </Link>
       <nav className="col-span-2 hidden gap-8 text-lg md:flex">
         <Link href="https://communeai.org/" target="_blank">
