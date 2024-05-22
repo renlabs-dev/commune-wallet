@@ -8,7 +8,7 @@ import { ToastProvider } from "~/hooks/toast";
 import { PolkadotProvider } from "~/hooks/polkadot";
 
 export const metadata = {
-  title: "Commune Wallet",
+  title: "Commune AI Wallet",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

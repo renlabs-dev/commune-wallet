@@ -18,7 +18,9 @@ export const Intro = () => {
           priority
           className="mr-[3px]"
         />
-        <h2 className={`${oxanium.className} ml-2 text-2xl`}>Commune Wallet</h2>
+        <h2 className={`${oxanium.className} ml-2 text-2xl`}>
+          Commune AI Wallet
+        </h2>
       </div>
 
       <p className="py-6 text-lg text-gray-300">
