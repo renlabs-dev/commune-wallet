@@ -171,7 +171,7 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
 
     api.tx.subspaceModule
-      .addStake(netUid, validator, calculate_amount(amount))
+      .addStake(netUid, validator, calculate_amount(amount), true)
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -300,14 +300,14 @@ export const PolkadotProvider: React.FC<PolkadotProviderProps> = ({
       !api ||
       !selectedAccount ||
       !polkadotApi.web3FromAddress ||
-      !api.tx.balances?.transfer
+      !api.tx.balances?.transferAllowDeath
     )
       return;
 
     const injector = await polkadotApi.web3FromAddress(selectedAccount.address);
 
     api.tx.balances
-      .transfer(to, calculate_amount(amount))
+      .transferAllowDeath(to, calculate_amount(amount))
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
