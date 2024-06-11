@@ -196,7 +196,7 @@ export const Wallet = () => {
       />
       <div className="my-10 flex w-full max-w-screen-lg animate-fade-in-down flex-col items-center justify-center border border-white bg-black/50 p-6">
         <div className="flex w-full flex-col items-center justify-center text-lg text-gray-300">
-          <p className="py-2">MAINET</p>
+          <p className="py-2">MAIN NET</p>
           <div className="flex w-full flex-col gap-4 pb-4 md:flex-row">
             <button
               onClick={handleConnect}
